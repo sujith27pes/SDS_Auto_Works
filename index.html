@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Maintenance 3D Viewer</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">Car Maintenance</div>
+        <nav>
+            <a href="#" class="nav-item">Notifications</a>
+            <a href="#" class="nav-item">Settings</a>
+            <a href="#" class="nav-item">Profile</a>
+        </nav>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <ul class="menu">
+            <li><a href="#" class="menu-item">Dashboard</a></li>
+            <li><a href="#" class="menu-item">Maintenance</a></li>
+            <li><a href="#" class="menu-item">Parts</a></li>
+            <li><a href="#" class="menu-item">History</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div id="3d-view"></div>
+        <div class="zoom-controls">
+            <button id="zoom-in">Zoom In</button>
+            <button id="zoom-out">Zoom Out</button>
+        </div>
+    </main>
+
+    <!-- Three.js and App Scripts -->
+    <script src="three.js"></script>
+    <script src="GLTFLoader.js"></script>
+    <script src="OrbitControls.js"></script>
+    <script src="https://threejs.org/examples/jsm/loaders/FontLoader.js"></script> <!-- Include FontLoader here -->
+    <script src="app.js"></script>
+</body>
+</html>
