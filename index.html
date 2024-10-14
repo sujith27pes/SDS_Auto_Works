@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Car Maintenance 3D Viewer</title>
+
+    <!-- Link to external CSS file -->
     <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
-    <!-- Header -->
+    <!-- Header Section -->
     <header class="header">
-        <div class="logo">SDS_Auto_Works</div>
+        <!-- Logo of the application -->
+        <div class="logo">Car Maintenance</div>
+
+        <!-- Navigation bar with links to notifications, settings, and profile -->
         <nav>
             <a href="#" class="nav-item">Notifications</a>
             <a href="#" class="nav-item">Settings</a>
@@ -17,30 +22,36 @@
         </nav>
     </header>
 
-    <!-- Sidebar -->
+    <!-- Sidebar Section -->
     <aside class="sidebar">
+        <!-- Menu items for navigation -->
         <ul class="menu">
-            <li><a href="#" class="menu-item">Dashboard</a></li>
-            <li><a href="#" class="menu-item">Maintenance</a></li>
-            <li><a href="#" class="menu-item">Parts</a></li>
-            <li><a href="#" class="menu-item">History</a></li>
+            <li><a href="#" class="menu-item">Dashboard</a></li> <!-- Link to Dashboard -->
+            <li><a href="#" class="menu-item">Maintenance</a></li> <!-- Link to Maintenance section -->
+            <li><a href="#" class="menu-item">Parts</a></li> <!-- Link to Parts section -->
+            <li><a href="#" class="menu-item">History</a></li> <!-- Link to History section -->
         </ul>
     </aside>
 
-    <!-- Main Content -->
+    <!-- Main Content Section -->
     <main class="main-content">
+        <!-- 3D Viewer container where the Three.js canvas will be rendered -->
         <div id="3d-view"></div>
+
+        <!-- Zoom controls for zooming in and out -->
         <div class="zoom-controls">
-            <button id="zoom-in">Zoom In</button>
-            <button id="zoom-out">Zoom Out</button>
+            <button id="zoom-in">Zoom In</button> <!-- Zoom In button -->
+            <button id="zoom-out">Zoom Out</button> <!-- Zoom Out button -->
         </div>
     </main>
 
-    <!-- Three.js and App Scripts -->
-    <script src="three.js"></script>
-    <script src="GLTFLoader.js"></script>
-    <script src="OrbitControls.js"></script>
-    <script src="https://threejs.org/examples/jsm/loaders/FontLoader.js"></script> <!-- Include FontLoader here -->
-    <script src="app.js"></script>
+    <!-- Include Three.js library and related scripts -->
+    <script src="three.js"></script> <!-- Three.js library -->
+    <script src="GLTFLoader.js"></script> <!-- GLTFLoader for loading 3D models -->
+    <script src="OrbitControls.js"></script> <!-- OrbitControls for controlling the camera -->
+    <script src="https://threejs.org/examples/jsm/loaders/FontLoader.js"></script> <!-- FontLoader for loading 3D text -->
+
+    <!-- Main application script -->
+    <script src="app.js"></script> <!-- The custom script that initializes and runs the 3D scene -->
 </body>
 </html>
