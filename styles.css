@@ -1,151 +1,170 @@
 :root {
-  --primary-color: #4CAF50;
-  --secondary-color: #333;
-  --accent-color: #FFD700;
-  --background-color: #f0f0f0;
-  --text-color: #333333;
-  --header-height: 80px;
-  --sidebar-width: 220px;
-  --transition-speed: 0.3s;
-  --shadow: rgba(0, 0, 0, 0.2) 0px 4px 12px;
-  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  /* Define root variables for colors, dimensions, transitions, shadows, and font */
+  --primary-color: #4CAF50; /* Green primary color */
+  --secondary-color: #333; /* Dark secondary color */
+  --accent-color: #FFD700; /* Gold accent color */
+  --background-color: #f0f0f0; /* Light background color */
+  --text-color: #333333; /* Dark text color */
+  --header-height: 80px; /* Fixed height for the header */
+  --sidebar-width: 220px; /* Fixed width for the sidebar */
+  --transition-speed: 0.3s; /* Default transition speed */
+  --shadow: rgba(0, 0, 0, 0.2) 0px 4px 12px; /* Shadow effect */
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Default font family */
 }
 
 * {
+  /* Reset margins and paddings, and apply box-sizing */
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
 body {
+  /* Set font, text color, background color, and overall layout */
   font-family: var(--font-family);
   color: var(--text-color);
   background-color: var(--background-color);
   display: flex;
-  height: 100vh;
-  overflow: hidden;
+  height: 100vh; /* Full viewport height */
+  overflow: hidden; /* Prevent scrolling */
 }
 
 .header {
-  background-color: var(--primary-color);
-  height: var(--header-height);
-  width: 100%;
-  position: fixed;
+  /* Styling for the header section */
+  background-color: var(--primary-color); /* Green background */
+  height: var(--header-height); /* Set height using the root variable */
+  width: 100%; /* Full width */
+  position: fixed; /* Fixed at the top of the screen */
   top: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 40px;
-  box-shadow: var(--shadow);
-  z-index: 10;
+  display: flex; /* Flexbox layout for aligning elements */
+  align-items: center; /* Vertically center elements */
+  justify-content: space-between; /* Space between logo and navigation */
+  padding: 0 40px; /* Horizontal padding */
+  box-shadow: var(--shadow); /* Apply shadow effect */
+  z-index: 10; /* Keep header on top */
 }
 
 .logo {
-  font-size: 1.8em;
+  /* Styling for the logo */
+  font-size: 1.8em; /* Larger font size */
   font-weight: bold;
-  color: var(--accent-color);
-  font-family: 'Verdana', sans-serif;
+  color: var(--accent-color); /* Gold color */
+  font-family: 'Verdana', sans-serif; /* Custom font */
 }
 
 .header nav {
+  /* Flex layout for navigation items */
   display: flex;
 }
 
 .header .nav-item {
-  margin-left: 25px;
+  /* Styling for each navigation item */
+  margin-left: 25px; /* Space between nav items */
   color: white;
   text-decoration: none;
   padding: 12px;
   font-size: 1.2em;
   font-weight: bold;
-  transition: color var(--transition-speed);
+  transition: color var(--transition-speed); /* Smooth color change */
 }
 
 .header .nav-item:hover {
-  color: var(--accent-color);
+  /* Hover effect for nav items */
+  color: var(--accent-color); /* Change color on hover */
 }
 
 .sidebar {
-  background-color: var(--secondary-color);
-  width: var(--sidebar-width);
-  position: fixed;
-  top: var(--header-height);
-  bottom: 0;
+  /* Styling for the sidebar */
+  background-color: var(--secondary-color); /* Dark background */
+  width: var(--sidebar-width); /* Fixed width */
+  position: fixed; /* Fixed on the left side */
+  top: var(--header-height); /* Start below the header */
+  bottom: 0; /* Full height */
   padding-top: 20px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow); /* Shadow for sidebar */
 }
 
 .sidebar ul {
-  list-style-type: disc;
+  /* List styles for sidebar menu */
+  list-style-type: disc; /* Use bullet points */
   padding: 0 20px;
 }
 
 .sidebar a {
+  /* Styling for sidebar links */
   color: white;
   padding: 15px 20px;
-  display: block;
+  display: block; /* Block level for full clickable area */
   text-decoration: none;
   font-size: 1.1em;
   font-weight: bold;
-  transition: background var(--transition-speed);
+  transition: background var(--transition-speed); /* Smooth background color change */
 }
 
 .sidebar a:hover {
-  background-color: #555;
+  /* Hover effect for sidebar items */
+  background-color: #555; /* Darker background on hover */
 }
 
 .main-content {
-  margin-top: var(--header-height);
-  margin-left: var(--sidebar-width);
+  /* Main content area */
+  margin-top: var(--header-height); /* Below the fixed header */
+  margin-left: var(--sidebar-width); /* Beside the fixed sidebar */
   padding: 20px;
-  flex-grow: 1;
-  background-color: var(--background-color);
-  overflow: hidden;
+  flex-grow: 1; /* Expand to fill the remaining space */
+  background-color: var(--background-color); /* Light background */
+  overflow: hidden; /* Hide overflow */
 }
 
 #3d-view {
-  width: 100%;
-  height: calc(100vh - var(--header-height) - 40px);
-  background-color: #e0e0e0;
-  box-shadow: var(--shadow);
+  /* Container for the 3D viewer */
+  width: 100%; /* Full width */
+  height: calc(100vh - var(--header-height) - 40px); /* Height adjusted based on viewport and header */
+  background-color: #e0e0e0; /* Light grey background */
+  box-shadow: var(--shadow); /* Add shadow around the 3D viewer */
 }
 
 .zoom-controls {
-  position: absolute;
+  /* Zoom controls positioning */
+  position: absolute; /* Absolute position at the bottom right */
   bottom: 20px;
   right: 20px;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: column; /* Stack buttons vertically */
+  gap: 10px; /* Space between buttons */
 }
 
 .zoom-controls button {
-  background-color: var(--primary-color);
+  /* Styling for the zoom buttons */
+  background-color: var(--primary-color); /* Green background */
   color: white;
   border: none;
-  padding: 12px 18px;
-  border-radius: 5px;
+  padding: 12px 18px; /* Button padding */
+  border-radius: 5px; /* Rounded corners */
   cursor: pointer;
   font-size: 16px;
   font-weight: bold;
-  transition: background-color 0.3s;
-  box-shadow: var(--shadow);
+  transition: background-color 0.3s; /* Smooth background transition */
+  box-shadow: var(--shadow); /* Add shadow */
 }
 
 .zoom-controls button:hover {
-  background-color: #3a8d3d;
+  /* Hover effect for zoom buttons */
+  background-color: #3a8d3d; /* Darker green on hover */
 }
 
 .hidden {
-  display: none;
+  /* Utility class for hidden elements */
+  display: none; /* Hide element */
 }
 
 .content-section {
-  display: none;
+  /* Styling for content sections */
+  display: none; /* Initially hidden */
   font-size: 1.2em;
   padding: 20px;
-  background-color: #fff;
-  box-shadow: var(--shadow);
-  border-radius: 10px;
+  background-color: #fff; /* White background */
+  box-shadow: var(--shadow); /* Add shadow */
+  border-radius: 10px; /* Rounded corners */
   margin-top: 20px;
 }
