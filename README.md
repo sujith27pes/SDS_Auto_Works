@@ -40,11 +40,7 @@ You can view the live demo here: [Car Garage Project on Vercel](https://sds-auto
 └── README.md         # Project documentation
 
 
-## Screenshot
 
-Here’s a preview of the Car Garage Project:
-
-![Car Garage Screenshot](./screenshot.png)
 
 
 
