@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const center = box.getCenter(new THREE.Vector3());
             car.position.sub(center);
 
-            car.position.y += 105;
+            car.position.y += 108;
             car.traverse((node) => {
                 if (node.isMesh) {
                     node.castShadow = true;
