@@ -3,55 +3,363 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Car Maintenance 3D Viewer</title>
+    <title>SDS Auto Works - Professional Car Maintenance</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-    <!-- Link to external CSS file -->
-    <link rel="stylesheet" type="text/css" href="styles.css">
+        :root {
+            --primary-color: #1a237e;
+            --secondary-color: #0d47a1;
+            --accent-color: #2962ff;
+            --text-color: #333;
+            --sidebar-width: 240px;
+            --header-height: 64px;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: #f5f5f5;
+            color: var(--text-color);
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--header-height);
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            box-shadow: var(--shadow-sm);
+            z-index: 100;
+        }
+
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .header-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .header-icon:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: #fff;
+            box-shadow: var(--shadow-md);
+            z-index: 101;
+        }
+
+        .logo-container {
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            background: var(--primary-color);
+        }
+
+        .logo {
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .menu {
+            padding: 16px 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .menu-item:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .menu-item.active {
+            background: rgba(41,98,255,0.1);
+            color: var(--accent-color);
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .menu-item i {
+            margin-right: 12px;
+            width: 24px;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: calc(var(--header-height) + 20px);
+            padding: 24px;
+            min-height: calc(100vh - var(--header-height));
+        }
+
+        
+
+        .page-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .maintenance-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-card {
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .stat-title {
+            font-size: 0.875rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        #3d-view {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            height: calc(100vh - 340px);
+            min-height: 500px;
+            position: relative;
+            margin-top: 24px;
+        }
+
+        .stats-panel {
+            position: absolute;
+            top: 60px;
+            right: 24px;
+            background: rgba(255,255,255,0.9);
+            padding: 12px;  /* Reduced padding */
+            border-radius: 6px;  /* Slightly reduced border radius */
+            box-shadow: var(--shadow-sm);
+            font-size: 0.85rem;  /* Reduced font size */
+        }
+
+        .stats-item {
+            margin-bottom: 6px;  /* Reduced margin */
+            font-size: 0.85rem;  /* Reduced font size */
+        }
+
+        .stats-item:last-child {
+            margin-bottom: 0;  /* Remove margin from last item */
+        }
+
+        .stats-label {
+            color: #666;
+            margin-right: 6px;  /* Reduced margin */
+        }
+
+        @media (max-width: 700px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+                transition: var(--transition);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .header {
+                left: 0;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+
+            .maintenance-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Header Section -->
     <header class="header">
-        <!-- Logo of the application -->
-        <div class="logo">SDS Auto Works</div>
-
-        <!-- Navigation bar with links to notifications, settings, and profile -->
-        <nav>
-            <a href="#" class="nav-item">Notifications</a>
-            <a href="#" class="nav-item">Settings</a>
-            <a href="#" class="nav-item">Profile</a>
-        </nav>
+        <div class="header-title">
+            Car Maintenance Viewer
+        </div>
+        <div class="header-actions">
+            <div class="header-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <div class="header-icon">
+                <i class="fas fa-cog"></i>
+            </div>
+            <div class="header-icon">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
     </header>
 
-    <!-- Sidebar Section -->
     <aside class="sidebar">
-        <!-- Menu items for navigation -->
-        <ul class="menu">
-            <li><a href="#" class="menu-item">Dashboard</a></li> <!-- Link to Dashboard -->
-            <li><a href="#" class="menu-item">Maintenance</a></li> <!-- Link to Maintenance section -->
-            <li><a href="#" class="menu-item">Parts</a></li> <!-- Link to Parts section -->
-            <li><a href="#" class="menu-item">History</a></li> <!-- Link to History section -->
-        </ul>
+        <div class="logo-container">
+            <a href="#" class="logo">SDS Auto Works</a>
+        </div>
+        <nav class="menu">
+            <a href="#" class="menu-item active" data-section="dashboard">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-wrench"></i>
+                Maintenance
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-cogs"></i>
+                Parts
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-history"></i>
+                History
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-calendar-alt"></i>
+                Schedule
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-file-alt"></i>
+                Reports
+            </a>
+        </nav>
     </aside>
 
-    <!-- Main Content Section -->
     <main class="main-content">
-        <!-- 3D Viewer container where the Three.js canvas will be rendered -->
-        <div id="3d-view"></div>
+        <div class="page-header">
+            <h1 class="page-title">Vehicle Maintenance Inspector</h1>
+            
+        </div>
 
-        <!-- Zoom controls for zooming in and out -->
-        <div class="zoom-controls">
-            <button id="zoom-in">Zoom In</button> <!-- Zoom In button -->
-            <button id="zoom-out">Zoom Out</button> <!-- Zoom Out button -->
+        <div class="maintenance-grid">
+            <div class="quick-stats">
+                <div class="stat-card">
+                    <div class="stat-title">Last Service</div>
+                    <div class="stat-value">Nov 3, 2024</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Next Service Due</div>
+                    <div class="stat-value">Mar 15, 2025</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Current Mileage</div>
+                    <div class="stat-value">15,234 km</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="3d-view">
+            <div class="stats-panel">
+                <div class="stats-item">
+                    <span class="stats-label">Model:</span>
+                    <span class="stats-value">Toyota Camry 2023</span>
+                </div>
+                <div class="stats-item">
+                    <span class="stats-label">VIN:</span>
+                    <span class="stats-value">1HGCM82633A123456</span>
+                </div>
+                <div class="stats-item">
+                    <span class="stats-label">Status:</span>
+                    <span class="stats-value">In Service</span>
+                </div>
+            </div>
         </div>
     </main>
 
-    <!-- Include Three.js library and related scripts -->
-    <script src="three.js"></script> <!-- Three.js library -->
-    <script src="GLTFLoader.js"></script> <!-- GLTFLoader for loading 3D models -->
-    <script src="OrbitControls.js"></script> <!-- OrbitControls for controlling the camera -->
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuItems = document.querySelectorAll('.menu-item');
+            
+            menuItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Only handle the dashboard menu item
+                    if (this.getAttribute('data-section') === 'dashboard') {
+                        // Remove active class from all menu items
+                        menuItems.forEach(mi => mi.classList.remove('active'));
+                        // Add active class to dashboard
+                        this.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
 
-    <!-- Main application script -->
-    <script src="app.js"></script> <!-- The custom script that initializes and runs the 3D scene -->
+    <script src="three.js"></script>
+    <script src="GLTFLoader.js"></script>
+    <script src="OrbitControls.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
