@@ -267,15 +267,91 @@ document.addEventListener("DOMContentLoaded", () => {
         liftRampGroup.add(legsGroup);
         liftRampGroup.position.y = -10;
     }
+
+    function raiseCar() {
+        if (!isCarRaised) {
+            let startPosition = liftRampGroup.position.y;
+            let targetPosition = 80;
+            let startTime = performance.now();
+
+            function raiseCarAnimation(currentTime) {
+                let elapsedTime = currentTime - startTime;
+                let progress = elapsedTime / raiseCarDuration;
+                progress = Math.min(progress, 1);
+
+                liftRampGroup.position.y = startPosition + (targetPosition - startPosition) * progress;
+                carGroup.position.y = startPosition + (targetPosition - startPosition) * progress;
+
+                if (progress > 0 && progress < 1) {
+                    if (!liftAudio.playing) {
+                        liftAudio.play();
+                        liftAudio.playing = true;
+                    }
+                } else {
+                    liftAudio.pause();
+                    liftAudio.currentTime = 0;
+                    liftAudio.playing = false;
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(raiseCarAnimation);
+                } else {
+                    isCarRaised = true;
+                    liftAudio.pause();
+                    liftAudio.currentTime = 0;
+                    liftAudio.playing = false;
+                }
+            }
+
+            requestAnimationFrame(raiseCarAnimation);
+        }
+    }
+
+    function lowerCar() {
+        if (isCarRaised) {
+            let startPosition = liftRampGroup.position.y;
+            let targetPosition = -10;
+            let startTime = performance.now();
+
+            function lowerCarAnimation(currentTime) {
+                let elapsedTime = currentTime - startTime;
+                let progress = elapsedTime / raiseCarDuration;
+                progress = Math.min(progress, 1);
+
+                liftRampGroup.position.y = startPosition - (startPosition - targetPosition) * progress;
+                carGroup.position.y = startPosition - (startPosition - targetPosition) * progress;
+
+                if (progress > 0 && progress < 1) {
+                    if (!liftAudio.playing) {
+                        liftAudio.play();
+                        liftAudio.playing = true;
+                    }
+                } else {
+                    liftAudio.pause();
+                    liftAudio.currentTime = 0;
+                    liftAudio.playing = false;
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(lowerCarAnimation);
+                } else {
+                    isCarRaised = false;
+                    liftAudio.pause();
+                    liftAudio.currentTime = 0;
+                    liftAudio.playing = false;
+                }
+            }
+
+            requestAnimationFrame(lowerCarAnimation);
+        }
+    }
+
     function onWindowResize() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth - 220, window.innerHeight - 60);
     }
-    
-    
-    
-    // Modified animate function to include lift bed rotation
+
     function animate() {
         requestAnimationFrame(animate);
     
@@ -284,7 +360,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 carGroup.rotation.y += rotationSpeed;
             }
             if (liftRamp) {
-                // Rotate just the lift bed (not the legs)
                 liftRampGroup.rotation.y += rotationSpeed;
             }
         }
@@ -292,7 +367,8 @@ document.addEventListener("DOMContentLoaded", () => {
         controls.update();
         renderer.render(scene, camera);
     }
-    
+
+    // Add keyboard event listener for raise/lower controls
     function setupUIControls() {
         // Create a container for all buttons
         const container = document.createElement('div');
@@ -317,84 +393,6 @@ document.addEventListener("DOMContentLoaded", () => {
         raiseCarButton.textContent = 'Raise Car';
         raiseCarButton.classList.add('button');
         container.appendChild(raiseCarButton);
-
-        raiseCarButton.addEventListener('click', () => {
-            if (!isCarRaised) {
-                raiseCarButton.textContent = 'Lower Car';
-                let startPosition = liftRampGroup.position.y;
-                let targetPosition = 80;
-                let startTime = performance.now();
-
-                function raiseCarAnimation(currentTime) {
-                    let elapsedTime = currentTime - startTime;
-                    let progress = elapsedTime / raiseCarDuration;
-                    progress = Math.min(progress, 1);
-
-                    liftRampGroup.position.y = startPosition + (targetPosition - startPosition) * progress;
-                    carGroup.position.y = startPosition + (targetPosition - startPosition) * progress;
-
-                    // Play the lift audio when the car is being raised
-                    if (progress > 0 && progress < 1) {
-                        if (!liftAudio.playing) {
-                            liftAudio.play();
-                            liftAudio.playing = true; // Custom flag to prevent multiple plays
-                        }
-                    } else {
-                        liftAudio.pause();
-                        liftAudio.currentTime = 0;
-                        liftAudio.playing = false;
-                    }
-
-                    if (progress < 1) {
-                        requestAnimationFrame(raiseCarAnimation);
-                    } else {
-                        isCarRaised = true;
-                        liftAudio.pause();
-                        liftAudio.currentTime = 0;
-                        liftAudio.playing = false;
-                    }
-                }
-
-                requestAnimationFrame(raiseCarAnimation);
-            } else {
-                raiseCarButton.textContent = 'Raise Car';
-                let startPosition = liftRampGroup.position.y;
-                let targetPosition = -10;
-                let startTime = performance.now();
-
-                function lowerCarAnimation(currentTime) {
-                    let elapsedTime = currentTime - startTime;
-                    let progress = elapsedTime / raiseCarDuration;
-                    progress = Math.min(progress, 1);
-
-                    liftRampGroup.position.y = startPosition - (startPosition - targetPosition) * progress;
-                    carGroup.position.y = startPosition - (startPosition - targetPosition) * progress;
-
-                    // Play the lift audio when the car is being lowered
-                    if (progress > 0 && progress < 1) {
-                        if (!liftAudio.playing) {
-                            liftAudio.play();
-                            liftAudio.playing = true; // Custom flag to prevent multiple plays
-                        }
-                    } else {
-                        liftAudio.pause();
-                        liftAudio.currentTime = 0;
-                        liftAudio.playing = false;
-                    }
-
-                    if (progress < 1) {
-                        requestAnimationFrame(lowerCarAnimation);
-                    } else {
-                        isCarRaised = false;
-                        liftAudio.pause();
-                        liftAudio.currentTime = 0;
-                        liftAudio.playing = false;
-                    }
-                }
-
-                requestAnimationFrame(lowerCarAnimation);
-            }
-        });
 
         // Zoom In Button
         const zoomInButton = document.createElement('button');
@@ -426,7 +424,30 @@ document.addEventListener("DOMContentLoaded", () => {
                 controls.update();
             }
         });
+        
+        raiseCarButton.addEventListener('click', () => {
+            if (!isCarRaised) {
+                raiseCarButton.textContent = 'Lower Car';
+                raiseCar();
+            } else {
+                raiseCarButton.textContent = 'Raise Car';
+                lowerCar();
+            }
+        });
     }
 
+    // Add keyboard event listener for raise/lower controls
+    document.addEventListener('keydown', (event) => {
+        const raiseCarButton = document.getElementById('raise-car-button');
+        
+        if (event.key.toLowerCase() === 'r' && !isCarRaised) {
+            raiseCarButton.textContent = 'Lower Car';
+            raiseCar();
+        } else if (event.key.toLowerCase() === 'l' && isCarRaised) {
+            raiseCarButton.textContent = 'Raise Car';
+            lowerCar();
+        }
+    });
+    
     init();
 });
