@@ -367,6 +367,24 @@ document.addEventListener("DOMContentLoaded", () => {
         controls.update();
         renderer.render(scene, camera);
     }
+    function handleKeyDown(event) {
+        const zoomSpeed = 20; // Adjust zoom speed as needed
+        const minZoom = 200;  // Minimum distance (zoom in limit)
+        const maxZoom = 2000; // Maximum distance (zoom out limit)
+    
+        if (event.key === '+') {
+            console.log('Zooming in');
+            camera.position.z = Math.max(camera.position.z - zoomSpeed, minZoom); // Zoom in, but don't go closer than minZoom
+        } else if (event.key === '-') {
+            console.log('Zooming out');
+            camera.position.z = Math.min(camera.position.z + zoomSpeed, maxZoom); // Zoom out, but don't go farther than maxZoom
+        }
+        camera.updateProjectionMatrix(); // Update the camera projection
+    }
+    
+    // Add event listener for keyboard zoom control
+    document.addEventListener("keydown", handleKeyDown);
+    
 
     // Add keyboard event listener for raise/lower controls
     function setupUIControls() {
