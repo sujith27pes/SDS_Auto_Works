@@ -1,10 +1,13 @@
+
+
 document.addEventListener("DOMContentLoaded", () => {
+    
     let scene, camera, renderer, controls;
     let carGroup, liftRamp, liftRampGroup;
-    let rotationSpeed = 0.01;
+    let rotationSpeed = 0.0069;
     let isRotating = false;
     let isCarRaised = false;
-    const raiseCarDuration = 2000; // 2 seconds
+    const raiseCarDuration = 4000; // 2 seconds
 
     // Load the audio file
     const liftAudio = new Audio('hydroliclift sound.m4a');
@@ -44,33 +47,129 @@ document.addEventListener("DOMContentLoaded", () => {
     function init() {
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0xffffff);
+        const tools = createTools();
+        scene.add(tools);
 
         camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 5000);
         camera.position.set(800, 100, 1000);
         camera.lookAt(0, 0, 0);
 
         // Ambient lighting
-        const ambientLight = new THREE.AmbientLight(0x404040, 3); // Increased intensity
+        /* const ambientLight = new THREE.AmbientLight(0x404040, 3); // Increased intensity
         scene.add(ambientLight);
-
+ */
         // Overhead lights
+        // Overhead lights
+        // Overhead lights with hanging mounts
+        // Overhead lights with realistic garage lighting colors
         for (let x = -300; x <= 300; x += 150) {
-            const tubeLight = new THREE.RectAreaLight(0xffffff, 5, 100, 20);
+            // Create hanging wires/rods
+            const wireGeometry = new THREE.CylinderGeometry(0.5, 0.5, 50, 8);
+            const wireMaterial = new THREE.MeshStandardMaterial({
+                color: 0x303030,
+                metalness: 0.8,
+                roughness: 0.2
+            });
+
+            // Two hanging points for each light
+            const leftWire = new THREE.Mesh(wireGeometry, wireMaterial);
+            leftWire.position.set(x - 40, 420, 0);
+            scene.add(leftWire);
+
+            const rightWire = new THREE.Mesh(wireGeometry, wireMaterial);
+            rightWire.position.set(x + 40, 420, 0);
+            scene.add(rightWire);
+
+            // Add ceiling mounting points
+            const mountGeometry = new THREE.CylinderGeometry(2, 2, 4, 16);
+            const mountMaterial = new THREE.MeshStandardMaterial({
+                color: 0x505050,
+                metalness: 0.9,
+                roughness: 0.1
+            });
+
+            const leftMount = new THREE.Mesh(mountGeometry, mountMaterial);
+            leftMount.position.set(x - 40, 445, 0);
+            scene.add(leftMount);
+
+            const rightMount = new THREE.Mesh(mountGeometry, mountMaterial);
+            rightMount.position.set(x + 40, 445, 0);
+            scene.add(rightMount);
+
+            // Main tube light - using cool white LED color (4000K)
+            const tubeLight = new THREE.RectAreaLight(0xF5F5FA, 4, 100, 20);
             tubeLight.position.set(x, 400, 0);
             tubeLight.lookAt(x, 0, 0);
             scene.add(tubeLight);
+            
+            // Glow light - slightly warmer tint for realism
+            const glowLight = new THREE.PointLight(0xF2F3FF, 0.4, 120);
+            glowLight.position.set(x, 395, 0);
+            scene.add(glowLight);
 
+            // Main fixture
             const fixtureGeometry = new THREE.BoxGeometry(100, 10, 20);
-            const fixtureMaterial = new THREE.MeshStandardMaterial({
-                color: 0xcccccc,
-                metalness: 0.5,
-                roughness: 0.2
+            const fixtureMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0xE8E8E8,  // Slightly off-white for realism
+                metalness: 0.7,
+                roughness: 0.2,
+                clearcoat: 0.3
             });
             const fixture = new THREE.Mesh(fixtureGeometry, fixtureMaterial);
             fixture.position.set(x, 395, 0);
             scene.add(fixture);
+
+            // Connector pieces between wires and fixture
+            const connectorGeometry = new THREE.BoxGeometry(5, 5, 5);
+            const connectorMaterial = new THREE.MeshStandardMaterial({
+                color: 0x404040,
+                metalness: 0.8,
+                roughness: 0.2
+            });
+
+            const leftConnector = new THREE.Mesh(connectorGeometry, connectorMaterial);
+            leftConnector.position.set(x - 40, 400, 0);
+            scene.add(leftConnector);
+
+            const rightConnector = new THREE.Mesh(connectorGeometry, connectorMaterial);
+            rightConnector.position.set(x + 40, 400, 0);
+            scene.add(rightConnector);
+
+            // Diffuser panel - using slightly cooler color when off
+            const diffuserGeometry = new THREE.BoxGeometry(98, 1, 18);
+            const diffuserMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0xF0F2FF,  // Slight blue tint for LED appearance
+                metalness: 0.1,
+                roughness: 0.1,
+                transparent: true,
+                opacity: 0.7,
+                transmission: 0.6
+            });
+            const diffuser = new THREE.Mesh(diffuserGeometry, diffuserMaterial);
+            diffuser.position.set(x, 390, 0);
+            scene.add(diffuser);
+
+            // End caps
+            const endCapGeometry = new THREE.BoxGeometry(4, 12, 22);
+            const endCapMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0xD8D8D8,  // Slightly darker than the main fixture
+                metalness: 0.8,
+                roughness: 0.2,
+                clearcoat: 0.4
+            });
+
+            const leftEndCap = new THREE.Mesh(endCapGeometry, endCapMaterial);
+            leftEndCap.position.set(x - 48, 395, 0);
+            scene.add(leftEndCap);
+
+            const rightEndCap = new THREE.Mesh(endCapGeometry, endCapMaterial);
+            rightEndCap.position.set(x + 48, 395, 0);
+            scene.add(rightEndCap);
         }
 
+        // Subtle ambient light - cool workshop tone
+        const ambientLight = new THREE.AmbientLight(0xE6EAF5, 0.69);
+        scene.add(ambientLight);
         // Corner point lights for full illumination
         const corners = [
             { x: -500, y: 250, z: -500 },
@@ -79,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
             { x: 500, y: 250, z: 500 },
         ];
         corners.forEach(corner => {
-            const pointLight = new THREE.PointLight(0xffffff, 1.5, 1000);
+            const pointLight = new THREE.PointLight(0xffffff, 2.0, 1000);
             pointLight.position.set(corner.x, corner.y, corner.z);
             scene.add(pointLight);
         });
@@ -144,88 +243,356 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function createEpoxyFloor() {
         const floorGeometry = new THREE.PlaneGeometry(1000, 1000, 100, 100);
+    
+        // Load textures: base color, grunge overlay, and gloss map for added realism
+        const textureLoader = new THREE.TextureLoader();
+        const baseTexture = textureLoader.load('textures/download (1).jpeg');      // A subtle color texture for epoxy
+        const grungeTexture = textureLoader.load('textures/OIP.jpeg'); // A grunge overlay texture for realism
+        const glossTexture = textureLoader.load('textures/OIP (1).jpeg');       // A gloss map for reflections
+    
+        // Set texture wrapping and repeat to match large floor area
+        baseTexture.wrapS = baseTexture.wrapT = THREE.RepeatWrapping;
+        grungeTexture.wrapS = grungeTexture.wrapT = THREE.RepeatWrapping;
+        glossTexture.wrapS = glossTexture.wrapT = THREE.RepeatWrapping;
+    
+        baseTexture.repeat.set(20, 20);
+        grungeTexture.repeat.set(20, 20);
+        glossTexture.repeat.set(20, 20);
+    
         const floorMaterial = new THREE.MeshStandardMaterial({
-            color: 0xf0f0f0,
-            metalness: 0.5,
-            roughness: 0.2,
+            color: 0x333333,         // Dark grey base color for epoxy
+            map: baseTexture,        // Apply base texture
+            roughnessMap: grungeTexture, // Adds realistic imperfections
+            roughness: 0.25,         // Slightly higher roughness for subdued gloss
+            metalness: 0.05,         // Very slight metallic look
+            envMapIntensity: 0.4,    // Reduced reflection intensity for a subtle shine
         });
+    
+        // Optional: Subtle checkered pattern overlay
+        const checkeredFloorMaterial = new THREE.MeshStandardMaterial({
+            color: 0x000000,         // Black for checker pattern
+            roughness: 0.3,
+            metalness: 0.1,
+            opacity: 0.08,           // Semi-transparent for a subtle checker effect
+            transparent: true,
+        });
+    
         const floor = new THREE.Mesh(floorGeometry, floorMaterial);
         floor.rotation.x = -Math.PI / 2;
         floor.receiveShadow = true;
+    
+        const checkeredFloor = new THREE.Mesh(floorGeometry, checkeredFloorMaterial);
+        checkeredFloor.rotation.x = -Math.PI / 2;
+        checkeredFloor.position.y = 0.01; // Slightly above the main floor
+    
+        // Add both layers to the scene
         scene.add(floor);
+        scene.add(checkeredFloor);
     }
+    
 
     function addGarageDetails() {
-        const wallMaterial = new THREE.MeshStandardMaterial({
+        // Materials
+        const metalMaterial = new THREE.MeshStandardMaterial({
             color: 0x8c8c8c,
-            roughness: 0.6,
-            metalness: 0.3,
-        });
-
-        const backWall = new THREE.Mesh(new THREE.BoxGeometry(1000, 500, 20), wallMaterial);
-        backWall.position.set(0, 250, -500);
-        scene.add(backWall);
-
-        const leftWall = new THREE.Mesh(new THREE.BoxGeometry(20, 500, 1000), wallMaterial);
-        leftWall.position.set(-500, 250, 0);
-        scene.add(leftWall);
-
-        const rightWall = new THREE.Mesh(new THREE.BoxGeometry(20, 500, 1000), wallMaterial);
-        rightWall.position.set(500, 250, 0);
-        scene.add(rightWall);
-
-        // Tool cabinet
-        const cabinetGeometry = new THREE.BoxGeometry(80, 150, 40);
-        const cabinetMaterial = new THREE.MeshStandardMaterial({
-            color: 0xcc0000,
-            metalness: 0.6,
             roughness: 0.3,
+            metalness: 0.8
         });
-        const cabinet = new THREE.Mesh(cabinetGeometry, cabinetMaterial);
-        cabinet.position.set(-400, 75, -400);
-        cabinet.castShadow = true;
-        scene.add(cabinet);
-
-        // Workbench
-        const benchGeometry = new THREE.BoxGeometry(200, 80, 60);
-        const benchMaterial = new THREE.MeshStandardMaterial({
-            color: 0x8b4513,
-            metalness: 0.4,
-            roughness: 0.6,
+    
+        const wallMaterial = new THREE.MeshStandardMaterial({
+            color: 0xe0e0e0,
+            roughness: 0.7,
+            metalness: 0.2
         });
-        const workbench = new THREE.Mesh(benchGeometry, benchMaterial);
-        workbench.position.set(-350, 40, 400);
-        workbench.castShadow = true;
-        scene.add(workbench);
-
-        // Tire rack and tires
-        const rackGeometry = new THREE.BoxGeometry(100, 200, 40);
-        const rackMaterial = new THREE.MeshStandardMaterial({
-            color: 0x333333,
-            metalness: 0.7,
-            roughness: 0.3,
-        });
-        const tireRack = new THREE.Mesh(rackGeometry, rackMaterial);
-        tireRack.position.set(450, 100, -400);
-        tireRack.castShadow = true;
-        scene.add(tireRack);
-
-        const tireGeometry = new THREE.TorusGeometry(20, 8, 16, 100);
-        const tireMaterial = new THREE.MeshStandardMaterial({
-            color: 0x1a1a1a,
-            roughness: 0.9,
-            metalness: 0.1,
-        });
-
-        for (let i = 0; i < 4; i++) {
-            const tire = new THREE.Mesh(tireGeometry, tireMaterial);
-            tire.position.set(450, 50 + (i * 40), -400);
-            tire.rotation.y = Math.PI / 2;
-            tire.castShadow = true;
-            scene.add(tire);
+    
+        // Modern Industrial Walls with Windows
+        const wallHeight = 400;
+        const wallSegments = 10;
+        
+        for (let i = 0; i < wallSegments; i++) {
+            // Back wall with industrial windows
+            const windowSection = new THREE.Group();
+            
+            // Wall section
+            const wallSegment = new THREE.Mesh(
+                new THREE.BoxGeometry(100, wallHeight, 20),
+                wallMaterial
+            );
+            
+            // Industrial window frame
+            if (i % 2 === 1) {  // Add windows to alternate segments
+                const frameGeometry = new THREE.BoxGeometry(80, 150, 5);
+                const windowFrame = new THREE.Mesh(frameGeometry, metalMaterial);
+                windowFrame.position.set(0, wallHeight/2 - 100, 2);
+                
+                // Window glass
+                const glassGeometry = new THREE.PlaneGeometry(70, 140);
+                const glassMaterial = new THREE.MeshPhysicalMaterial({
+                    color: 0xffffff,
+                    transparent: true,
+                    opacity: 0.3,
+                    roughness: 0.05,
+                    metalness: 0.1,
+                    transmission: 0.95
+                });
+                const windowGlass = new THREE.Mesh(glassGeometry, glassMaterial);
+                windowGlass.position.set(0, wallHeight/2 - 100, 2);
+                
+                windowSection.add(windowFrame);
+                windowSection.add(windowGlass);
+            }
+            
+            windowSection.add(wallSegment);
+            windowSection.position.set(-450 + (i * 100), wallHeight/2, -490);
+            scene.add(windowSection);
         }
+    
+        // Modern Tool Storage System
+        const toolStorageSystem = new THREE.Group();
+        
+        // Main cabinet body
+        const cabinetBody = new THREE.Mesh(
+            new THREE.BoxGeometry(300, 200, 60),
+            new THREE.MeshStandardMaterial({
+                color: 0x2c3e50,
+                metalness: 0.7,
+                roughness: 0.2
+            })
+        );
+    
+        // Add drawer details
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 3; j++) {
+                const drawer = new THREE.Mesh(
+                    new THREE.BoxGeometry(90, 45, 2),
+                    new THREE.MeshStandardMaterial({
+                        color: 0x34495e,
+                        metalness: 0.8,
+                        roughness: 0.1
+                    })
+                );
+                drawer.position.set(-90 + (j * 95), -75 + (i * 50), 31);
+                
+                // Drawer handle
+                const handle = new THREE.Mesh(
+                    new THREE.CylinderGeometry(2, 2, 40, 8),
+                    metalMaterial
+                );
+                handle.rotation.z = Math.PI / 2;
+                handle.position.set(-90 + (j * 95), -75 + (i * 50), 35);
+                
+                cabinetBody.add(drawer);
+                cabinetBody.add(handle);
+            }
+        }
+        
+        toolStorageSystem.add(cabinetBody);
+        toolStorageSystem.position.set(-350, 100, -450);
+        scene.add(toolStorageSystem);
+    
+        // Modern Workbench with LED Lighting
+        const workbenchSystem = new THREE.Group();
+        
+        // Main bench surface
+        const benchTop = new THREE.Mesh(
+            new THREE.BoxGeometry(250, 10, 80),
+            new THREE.MeshStandardMaterial({
+                color: 0x2c3e50,
+                metalness: 0.3,
+                roughness: 0.7
+            })
+        );
+        
+        // Steel frame legs
+        const legGeometry = new THREE.BoxGeometry(5, 90, 5);
+        const legPositions = [
+            [-120, -45, -35], [-120, -45, 35],
+            [120, -45, -35], [120, -45, 35]
+        ];
+        
+        legPositions.forEach(pos => {
+            const leg = new THREE.Mesh(legGeometry, metalMaterial);
+            leg.position.set(...pos);
+            workbenchSystem.add(leg);
+        });
+        
+        // LED strip under the bench top
+        const ledStrip = new THREE.Mesh(
+            new THREE.BoxGeometry(240, 2, 2),
+            new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+        );
+        ledStrip.position.set(0, -5, -38);
+        
+        workbenchSystem.add(benchTop);
+        workbenchSystem.add(ledStrip);
+        workbenchSystem.position.set(350, 95, 400);
+        scene.add(workbenchSystem);
+    
+        // Modern Tire Display Rack
+        const tireDisplaySystem = new THREE.Group();
+        
+        // Vertical support beams
+        const supportGeometry = new THREE.BoxGeometry(5, 300, 5);
+        const supports = [
+            new THREE.Mesh(supportGeometry, metalMaterial),
+            new THREE.Mesh(supportGeometry, metalMaterial)
+        ];
+        supports[0].position.set(-40, 150, 0);
+        supports[1].position.set(40, 150, 0);
+        supports.forEach(support => tireDisplaySystem.add(support));
+        
+        // Tire displays with angled mounts
+        for (let i = 0; i < 4; i++) {
+            const mount = new THREE.Mesh(
+                new THREE.BoxGeometry(90, 5, 40),
+                metalMaterial
+            );
+            mount.rotation.z = Math.PI * 0.1;
+            mount.position.set(0, 50 + (i * 70), 0);
+            
+            const tire = new THREE.Mesh(
+                new THREE.TorusGeometry(25, 10, 16, 100),
+                new THREE.MeshStandardMaterial({
+                    color: 0x1a1a1a,
+                    roughness: 0.9,
+                    metalness: 0.1
+                })
+            );
+            tire.rotation.x = Math.PI / 2;
+            tire.position.set(0, 50 + (i * 70), 20);
+            
+            tireDisplaySystem.add(mount);
+            tireDisplaySystem.add(tire);
+        }
+        
+        tireDisplaySystem.position.set(450, 0, -400);
+        scene.add(tireDisplaySystem);
+    
+        // Add floor markings
+        const markingsGeometry = new THREE.PlaneGeometry(800, 800);
+        const markingsTexture = new THREE.TextureLoader().load('textures/floor-markings.png');
+        const markingsMaterial = new THREE.MeshBasicMaterial({
+            map: markingsTexture,
+            transparent: true,
+            opacity: 0.4
+        });
+        const floorMarkings = new THREE.Mesh(markingsGeometry, markingsMaterial);
+        floorMarkings.rotation.x = -Math.PI / 2;
+        floorMarkings.position.y = 0.1;
+        scene.add(floorMarkings);
+    
+        // Add safety equipment
+        addSafetyEquipment();
     }
-
+    
+    function addSafetyEquipment() {
+        // Fire Extinguisher with a metallic red look
+        const extinguisherGroup = new THREE.Group();
+    
+        // Main cylinder with a glossy metallic red finish
+        const cylinder = new THREE.Mesh(
+            new THREE.CylinderGeometry(5, 5, 40, 32),
+            new THREE.MeshStandardMaterial({ 
+                color: 0xcc0000,
+                metalness: 0.9,
+                roughness: 0.3
+            })
+        );
+    
+        // Nozzle with dark metallic appearance
+        const nozzle = new THREE.Mesh(
+            new THREE.CylinderGeometry(1, 2, 10, 16),
+            new THREE.MeshStandardMaterial({ 
+                color: 0x1a1a1a,
+                metalness: 0.8,
+                roughness: 0.2
+            })
+        );
+        nozzle.position.y = 25;
+    
+        // Gauge with a slight shine
+        const gauge = new THREE.Mesh(
+            new THREE.CircleGeometry(2, 32),
+            new THREE.MeshStandardMaterial({ 
+                color: 0xf0f0f0,
+                metalness: 0.5,
+                roughness: 0.2
+            })
+        );
+        gauge.rotation.x = -Math.PI / 2;
+        gauge.position.set(3, 10, 2);
+    
+        // Wall mount bracket
+        const bracket = new THREE.Mesh(
+            new THREE.BoxGeometry(8, 15, 4),
+            new THREE.MeshStandardMaterial({ 
+                color: 0x404040,
+                metalness: 0.7,
+                roughness: 0.3
+            })
+        );
+        bracket.position.z = 3;
+    
+        extinguisherGroup.add(cylinder, nozzle, gauge, bracket);
+    
+        // Position fire extinguisher on wall
+        extinguisherGroup.position.set(-300, 240, -480);
+        scene.add(extinguisherGroup);
+    
+        // First Aid Kit with a rugged look
+        const kitGroup = new THREE.Group();
+    
+        // Main box for the first aid kit
+        const firstAidKit = new THREE.Mesh(
+            new THREE.BoxGeometry(30, 30, 10),
+            new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                metalness: 0.3,
+                roughness: 0.7
+            })
+        );
+    
+        // Red border and cross for detail
+        const borderMaterial = new THREE.MeshStandardMaterial({
+            color: 0xe60000,
+            metalness: 0.2,
+            roughness: 0.6
+        });
+        const kitBorder = new THREE.Mesh(new THREE.BoxGeometry(32, 32, 9), borderMaterial);
+        kitBorder.position.z = -0.5;
+        
+        const redCross = new THREE.Mesh(new THREE.BoxGeometry(20, 5, 1), borderMaterial);
+        redCross.position.z = 5.1;
+        const verticalCross = redCross.clone();
+        verticalCross.rotation.z = Math.PI / 2;
+    
+        // Wall mount for the first aid kit
+        const kitMount = new THREE.Mesh(
+            new THREE.BoxGeometry(34, 34, 2),
+            new THREE.MeshStandardMaterial({
+                color: 0x404040,
+                metalness: 0.6,
+                roughness: 0.4
+            })
+        );
+        kitMount.position.z = -6;
+    
+        kitGroup.add(kitMount, kitBorder, firstAidKit, redCross, verticalCross);
+        
+        // Position first aid kit above the extinguisher
+        kitGroup.position.set(-300, 300, -480);
+        scene.add(kitGroup);
+    
+        // Subtle accent lighting for enhanced appearance
+        const safetyLight1 = new THREE.PointLight(0xffffff, 0.2, 100);
+        safetyLight1.position.set(-300, 300, -460);
+        scene.add(safetyLight1);
+    
+        const safetyLight2 = new THREE.PointLight(0xffffff, 0.2, 100);
+        safetyLight2.position.set(-300, 240, -460);
+        scene.add(safetyLight2);
+    }
+    
     function createLiftRamp() {
         liftRampGroup = new THREE.Group();
         scene.add(liftRampGroup);
@@ -267,6 +634,176 @@ document.addEventListener("DOMContentLoaded", () => {
         liftRampGroup.add(legsGroup);
         liftRampGroup.position.y = -10;
     }
+    function createTools() {
+        const toolsGroup = new THREE.Group();
+        
+        // Materials
+        const metalMaterial = new THREE.MeshStandardMaterial({
+            color: 0x8c8c8c,
+            roughness: 0.3,
+            metalness: 0.8
+        });
+        
+        const rubberMaterial = new THREE.MeshStandardMaterial({
+            color: 0x1a1a1a,
+            roughness: 0.9,
+            metalness: 0.1
+        });
+    
+        const redPlasticMaterial = new THREE.MeshStandardMaterial({
+            color: 0xff0000,
+            roughness: 0.7,
+            metalness: 0.2
+        });
+    
+        // 1. Socket Wrench Set
+        const socketSet = new THREE.Group();
+        
+        // Socket wrench handle
+        const handle = new THREE.Mesh(
+            new THREE.CylinderGeometry(1, 1, 20, 8),
+            metalMaterial
+        );
+        handle.rotation.z = Math.PI / 2;
+        
+        // Socket head
+        const socket = new THREE.Mesh(
+            new THREE.CylinderGeometry(2, 2, 5, 6),
+            metalMaterial
+        );
+        socket.position.x = 12;
+        socket.rotation.z = Math.PI / 2;
+        
+        socketSet.add(handle);
+        socketSet.add(socket);
+        socketSet.position.set(350, 100, 380); // Position on workbench
+    
+        // 2. Hydraulic Floor Jack
+        const jackGroup = new THREE.Group();
+        
+        // Base
+        const jackBase = new THREE.Mesh(
+            new THREE.BoxGeometry(40, 5, 60),
+            metalMaterial
+        );
+        
+        // Lift arm
+        const liftArm = new THREE.Mesh(
+            new THREE.BoxGeometry(30, 3, 40),
+            metalMaterial
+        );
+        liftArm.position.set(0, 10, -10);
+        
+        // Wheels
+        const wheelGeometry = new THREE.CylinderGeometry(3, 3, 3, 16);
+        const frontLeftWheel = new THREE.Mesh(wheelGeometry, rubberMaterial);
+        frontLeftWheel.rotation.z = Math.PI / 2;
+        frontLeftWheel.position.set(-15, -2, -25);
+        
+        const frontRightWheel = frontLeftWheel.clone();
+        frontRightWheel.position.set(15, -2, -25);
+        
+        const backLeftWheel = frontLeftWheel.clone();
+        backLeftWheel.position.set(-15, -2, 25);
+        
+        const backRightWheel = frontLeftWheel.clone();
+        backRightWheel.position.set(15, -2, 25);
+        
+        jackGroup.add(jackBase);
+        jackGroup.add(liftArm);
+        jackGroup.add(frontLeftWheel);
+        jackGroup.add(frontRightWheel);
+        jackGroup.add(backLeftWheel);
+        jackGroup.add(backRightWheel);
+        jackGroup.position.set(-100, 0, 200);
+    
+        // 3. Digital Diagnostic Scanner
+        const scanner = new THREE.Group();
+        
+        // Main body
+        const scannerBody = new THREE.Mesh(
+            new THREE.BoxGeometry(15, 25, 3),
+            redPlasticMaterial
+        );
+        
+        // Screen
+        const screen = new THREE.Mesh(
+            new THREE.PlaneGeometry(12, 20),
+            new THREE.MeshBasicMaterial({ color: 0x00ff00, opacity: 0.8, transparent: true })
+        );
+        screen.position.z = 1.6;
+        
+        scanner.add(scannerBody);
+        scanner.add(screen);
+        scanner.position.set(350, 105, 390);
+    
+        // 4. Oil Drain Pan
+        const panGroup = new THREE.Group();
+        
+        const pan = new THREE.Mesh(
+            new THREE.CylinderGeometry(20, 15, 10, 32),
+            new THREE.MeshStandardMaterial({
+                color: 0x2c3e50,
+                roughness: 0.5,
+                metalness: 0.3
+            })
+        );
+        
+        panGroup.add(pan);
+        panGroup.position.set(0, 5, 0);
+    
+        // 5. Mechanic's Creeper
+        const creeperGroup = new THREE.Group();
+        
+        // Creeper board
+        const board = new THREE.Mesh(
+            new THREE.BoxGeometry(60, 3, 120),
+            redPlasticMaterial
+        );
+        
+        // Headrest
+        const headrest = new THREE.Mesh(
+            new THREE.BoxGeometry(40, 8, 20),
+            new THREE.MeshStandardMaterial({
+                color: 0x000000,
+                roughness: 0.9,
+                metalness: 0.1
+            })
+        );
+        headrest.position.z = -45;
+        headrest.position.y = 2;
+        
+        // Add wheels (6 of them)
+        const creeperWheelGeometry = new THREE.CylinderGeometry(3, 3, 2, 16);
+        const wheelPositions = [
+            [-25, -2, -50], [25, -2, -50],
+            [-25, -2, 0], [25, -2, 0],
+            [-25, -2, 50], [25, -2, 50]
+        ];
+        
+        wheelPositions.forEach(pos => {
+            const wheel = new THREE.Mesh(creeperWheelGeometry, rubberMaterial);
+            wheel.rotation.z = Math.PI / 2;
+            wheel.position.set(...pos);
+            creeperGroup.add(wheel);
+        });
+        
+        creeperGroup.add(board);
+        creeperGroup.add(headrest);
+        creeperGroup.position.set(-200, 5, 0);
+    
+        // Add all tool groups to the main tools group
+        toolsGroup.add(socketSet);
+        toolsGroup.add(jackGroup);
+        toolsGroup.add(scanner);
+        toolsGroup.add(panGroup);
+        toolsGroup.add(creeperGroup);
+        
+        return toolsGroup;
+    }
+    
+    // Add this line in your init() function, after creating the workbench:
+    
 
     function raiseCar() {
         if (!isCarRaised) {
