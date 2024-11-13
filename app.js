@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Overhead lights
         // Overhead lights with hanging mounts
         // Overhead lights with realistic garage lighting colors
-        for (let x = -300; x <= 300; x += 150) {
+        for (let x = -310; x <= 300; x += 150) {
             // Create hanging wires/rods
             const wireGeometry = new THREE.CylinderGeometry(0.5, 0.5, 50, 8);
             const wireMaterial = new THREE.MeshStandardMaterial({
