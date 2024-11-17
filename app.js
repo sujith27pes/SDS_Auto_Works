@@ -1,7 +1,6 @@
 
-
 document.addEventListener("DOMContentLoaded", () => {
-    
+     
     let scene, camera, renderer, controls;
     let carGroup, liftRamp, liftRampGroup;
     let rotationSpeed = 0.0069;
@@ -45,6 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.head.appendChild(style);
 
     function init() {
+
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0xffffff);
         const tools = createTools();
@@ -168,35 +168,147 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // Subtle ambient light - cool workshop tone
-        const ambientLight = new THREE.AmbientLight(0xE6EAF5, 0.69);
+        const ambientLight = new THREE.AmbientLight(0xFFE4D3, 0.6); // Increased from 0.4 to 0.6
         scene.add(ambientLight);
-        // Corner point lights for full illumination
-        const corners = [
-            { x: -500, y: 250, z: -500 },
-            { x: 500, y: 250, z: -500 },
-            { x: -500, y: 250, z: 500 },
-            { x: 500, y: 250, z: 500 },
+
+        // 2. Main Directional Sun Light - Repositioned to minimize front shadows
+        const sunLight = new THREE.DirectionalLight(0xFFFFFA, 2.5);
+        sunLight.position.set(0, 600, -200); // More overhead position
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 4096;
+        sunLight.shadow.mapSize.height = 4096;
+        sunLight.shadow.camera.near = 0.5;
+        sunLight.shadow.camera.far = 2000;
+        sunLight.shadow.camera.left = -1000;
+        sunLight.shadow.camera.right = 1000;
+        sunLight.shadow.camera.top = 1000;
+        sunLight.shadow.camera.bottom = -1000;
+        sunLight.shadow.bias = -0.0001;
+        sunLight.shadow.normalBias = 0.05;
+        scene.add(sunLight);
+
+        // 3. Corner Lights - Repositioned for better front coverage
+        const cornerLights = [
+            { x: -300, y: 200, z: -300, color: 0xFFF3E0, intensity: 1.2 },
+            { x: 300, y: 200, z: -300, color: 0xFFF3E0, intensity: 1.2 }
         ];
-        corners.forEach(corner => {
-            const pointLight = new THREE.PointLight(0xffffff, 2.0, 1000);
+
+        cornerLights.forEach(corner => {
+            const pointLight = new THREE.PointLight(corner.color, corner.intensity, 1000);
             pointLight.position.set(corner.x, corner.y, corner.z);
+            pointLight.castShadow = false; // Disabled shadows from corner lights
             scene.add(pointLight);
         });
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
-        directionalLight.position.set(200, 400, 300);
-        directionalLight.castShadow = true;
-        scene.add(directionalLight);
+        // 4. Front Area Light - Wide light to eliminate front shadows
+        const frontArea = new THREE.RectAreaLight(0xFFFFFF, 1.0, 600, 200);
+        frontArea.position.set(0, 100, -200);
+        frontArea.lookAt(0, 0, 0);
+        scene.add(frontArea);
 
-        const spotlight = new THREE.SpotLight(0xffffff, 2);
-        spotlight.position.set(0, 400, 0);
+        // 5. Front Fill Lights - Strategic positioning to eliminate shadows
+        const frontFills = [
+            // Main front fills
+            { x: -150, y: 80, z: -200, intensity: 1.0 },  // Left front
+            { x: 150, y: 80, z: -200, intensity: 1.0 },   // Right front
+            { x: 0, y: 60, z: -180, intensity: 0.8 },     // Center front
+            // Low fills for under-car
+            { x: -100, y: 30, z: -150, intensity: 0.6 },  // Left low
+            { x: 100, y: 30, z: -150, intensity: 0.6 },   // Right low
+            { x: 0, y: 20, z: -160, intensity: 0.5 }      // Center low
+        ];
+
+        frontFills.forEach(fill => {
+            const fillLight = new THREE.PointLight(0xFFFFFF, fill.intensity, 300);
+            fillLight.position.set(fill.x, fill.y, fill.z);
+            fillLight.castShadow = false;
+            scene.add(fillLight);
+        });
+
+        // 6. Ground fill to eliminate any remaining under-car shadows
+        const groundFill = new THREE.RectAreaLight(0xFFFFFF, 0.8, 400, 400);
+        groundFill.position.set(0, 5, -100);
+        groundFill.rotation.x = -Math.PI / 2;
+        scene.add(groundFill);
+
+        // 7. Optional: Spotlight for overall scene definition
+        const spotlight = new THREE.SpotLight(0xFFF3E0, 1.5);
+        spotlight.position.set(0, 500, 200); // Positioned behind to avoid front shadows
         spotlight.angle = Math.PI / 4;
-        spotlight.penumbra = 0.1;
+        spotlight.penumbra = 0.3;
         spotlight.decay = 2;
         spotlight.distance = 1000;
         spotlight.castShadow = true;
+        spotlight.shadow.mapSize.width = 2048;
+        spotlight.shadow.mapSize.height = 2048;
+        spotlight.shadow.bias = -0.0001;
+        spotlight.shadow.radius = 4;
         scene.add(spotlight);
 
+        // 8. Helper function to adjust all lights when car moves
+        function adjustLights(carPosition) {
+            // Adjust front fills
+            frontFills.forEach((fill, index) => {
+                const light = scene.children.find(child => 
+                    child.isPointLight && 
+                    child.position.x === fill.x + carPosition.x
+                );
+                if (light) {
+                    light.position.set(
+                        carPosition.x + fill.x,
+                        carPosition.y + fill.y,
+                        carPosition.z + fill.z
+                    );
+                }
+            });
+            
+            // Adjust front area light
+            const frontAreaLight = scene.children.find(child => 
+                child.isRectAreaLight && 
+                child.position.y === 100
+            );
+            if (frontAreaLight) {
+                frontAreaLight.position.set(
+                    carPosition.x,
+                    carPosition.y + 100,
+                    carPosition.z - 200
+                );
+                frontAreaLight.lookAt(
+                    carPosition.x,
+                    carPosition.y,
+                    carPosition.z
+                );
+            }
+            
+            // Adjust ground fill
+            const groundFillLight = scene.children.find(child => 
+                child.isRectAreaLight && 
+                child.position.y === 5
+            );
+            if (groundFillLight) {
+                groundFillLight.position.set(
+                    carPosition.x,
+                    carPosition.y + 5,
+                    carPosition.z - 100
+                );
+            }
+        }
+
+        // 9. Animation function (if needed)
+        function animateLights(time) {
+            // Minimal animation to maintain stable lighting
+            scene.traverse((object) => {
+                if (object.isPointLight && object.userData.initialIntensity) {
+                    const fluctuation = Math.sin(time * 0.001) * 0.05;
+                    object.intensity = object.userData.initialIntensity * (1 + fluctuation);
+                }
+            });
+        }
+
+// Add to your render/animation loop:
+// animateLights(performance.now());
+// If the car moves, call:
+// adjustLights(carPosition);
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth - 220, window.innerHeight - 60);
         renderer.shadowMap.enabled = true;
