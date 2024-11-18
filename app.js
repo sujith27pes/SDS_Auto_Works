@@ -1,5 +1,7 @@
 
 document.addEventListener("DOMContentLoaded", () => {
+    
+
      
     let scene, camera, renderer, controls;
     let carGroup, liftRamp, liftRampGroup;
@@ -14,11 +16,14 @@ document.addEventListener("DOMContentLoaded", () => {
     let moveRight = false;
     let isCarStarted = false; // Tracks whether the car is started
     let isSwitchOn = false;
+    let mechanic;
 
 
     // Load the audio file
     const liftAudio = new Audio('hydroliclift sound.m4a');
     const carStartAudio = new Audio('car-engine-start-outside-72279.mp3');
+    const failStartAudio = new Audio('car-not-starting-74857.mp3');
+
 
     // Add CSS styling for the buttons directly in JavaScript
     const style = document.createElement('style');
@@ -53,14 +58,193 @@ document.addEventListener("DOMContentLoaded", () => {
             background-color: #1E90FF; /* Dodger Blue */
             color: white;
         }
-        #start-car-button {
-            background-color: #32CD32; /* Lime Green */
-            color: white;
-}
+        
     `;
     document.head.appendChild(style);
+     // Global reference for the mechanic object
+    const buttonStyle = document.createElement('style');
+    
+    buttonStyle.textContent = `
+        .button-red {
+            background-color: #FF0000 !important; /* Bright red */
+            color: white;
+        }
+        .button-green {
+            background-color: #00FF00 !important; /* Bright green */
+            color: white;
+        }
+    `;
+    document.head.appendChild(buttonStyle);
+
+
+// Create a mechanic placeholder
+    function createMechanic() {
+        const mechanicGroup = new THREE.Group();
+
+        // Head (Sphere)
+        const headGeometry = new THREE.SphereGeometry(10, 32, 32);
+        const headMaterial = new THREE.MeshStandardMaterial({ color: 0xffcc99 });
+        const head = new THREE.Mesh(headGeometry, headMaterial);
+        head.position.set(0, 65, 0); // Adjust head height
+        mechanicGroup.add(head);
+
+        // Body (Cylinder)
+        const bodyGeometry = new THREE.CylinderGeometry(12, 12, 30, 32);
+        const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x0000ff }); // Blue for uniform
+        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        body.position.set(0, 40, 0);
+        mechanicGroup.add(body);
+
+        // Arms (Cylinders)
+        const armGeometry = new THREE.CylinderGeometry(4, 4, 25, 32);
+        const armMaterial = new THREE.MeshStandardMaterial({ color: 0x0000ff });
+        const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+        const rightArm = leftArm.clone();
+        leftArm.position.set(-15, 45, 0);
+        rightArm.position.set(15, 45, 0);
+        mechanicGroup.add(leftArm);
+        mechanicGroup.add(rightArm);
+
+        // Legs (Cylinders)
+        const legGeometry = new THREE.CylinderGeometry(5, 5, 30, 32);
+        const legMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 }); // Black for pants
+        const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+        const rightLeg = leftLeg.clone();
+        leftLeg.position.set(-6, 15, 0);
+        rightLeg.position.set(6, 15, 0);
+        mechanicGroup.add(leftLeg);
+        mechanicGroup.add(rightLeg);
+        
+
+        // Set initial position next to the car
+        mechanicGroup.position.set(200, 0, 300); // Adjust as needed
+        scene.add(mechanicGroup);
+
+        mechanic = mechanicGroup;
+    }
+
+    function mechanicMoveToCar(duration) {
+        return new Promise((resolve) => {
+            const targetPosition = { x: 0, y: 0, z: 0 }; // Under the car
+            const startTime = performance.now();
+            const amplitude = 2; // Amplitude of up-and-down motion
+            const frequency = 2; // Frequency of up-and-down motion
+    
+            function moveMechanic(currentTime) {
+                const elapsedTime = currentTime - startTime;
+                const progress = Math.min(elapsedTime / duration, 1);
+    
+                // Interpolate position
+                mechanic.position.x = 200 + (targetPosition.x - 200) * progress;
+                mechanic.position.z = 300 + (targetPosition.z - 300) * progress;
+    
+                // Simulate walking motion with up-and-down movement
+                mechanic.position.y = amplitude * Math.sin(frequency * progress * Math.PI);
+    
+                if (progress < 1) {
+                    requestAnimationFrame(moveMechanic);
+                } else {
+                    mechanic.position.y = 0; // Reset y position once movement is complete
+                    resolve(); // Animation complete
+                }
+            }
+    
+            requestAnimationFrame(moveMechanic);
+        });
+    }
+    
+    function mechanicReturnToPosition(duration) {
+        return new Promise((resolve) => {
+            const targetPosition = { x: 200, y: 0, z: 300 }; // Next to the car
+            const startTime = performance.now();
+            const amplitude = 2; // Amplitude of up-and-down motion
+            const frequency = 2; // Frequency of up-and-down motion
+    
+            function moveMechanicBack(currentTime) {
+                const elapsedTime = currentTime - startTime;
+                const progress = Math.min(elapsedTime / duration, 1);
+    
+                // Interpolate position
+                mechanic.position.x = 0 + (targetPosition.x - 0) * progress;
+                mechanic.position.z = 0 + (targetPosition.z - 0) * progress;
+    
+                // Simulate walking motion with up-and-down movement
+                mechanic.position.y = amplitude * Math.sin(frequency * progress * Math.PI);
+    
+                if (progress < 1) {
+                    requestAnimationFrame(moveMechanicBack);
+                } else {
+                    mechanic.position.y = 0; // Reset y position once movement is complete
+                    resolve(); // Animation complete
+                }
+            }
+    
+            requestAnimationFrame(moveMechanicBack);
+        });
+    }
+    
+    
+    // Function to display non-interfering warnings
+    // Add CSS for warning messages
+    
+    const warningStyle = document.createElement('style');
+    warningStyle.textContent = `
+        #warning-container {
+            position: fixed;
+            top: 100px; /* Position the messages slightly below the top */
+            right: 20px; /* Keep them aligned to the right */
+            max-width: 400px; /* Increase the width for better readability */
+            z-index: 1000;
+        }
+        .warning {
+            background: linear-gradient(90deg, rgba(255,69,58,1) 0%, rgba(255,94,77,1) 100%);
+            color: white;
+            font-size: 18px; /* Increase font size */
+            font-weight: bold; /* Make the text bold */
+            padding: 15px 20px; /* Add more padding for better aesthetics */
+            margin-bottom: 15px; /* Add space between messages */
+            border-radius: 12px; /* Smoothen the corners */
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Add a shadow for depth */
+            opacity: 0;
+            transform: translateX(100%);
+            animation: slideIn 0.4s forwards, fadeOut 0.4s 4.6s forwards; /* Smooth animation */
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; transform: translateX(100%); }
+        }
+    `;
+    document.head.appendChild(warningStyle);
+
+    function displayWarning(message) {
+        const container = document.getElementById('warning-container');
+        if (!container) return;
+    
+        // Create the warning element
+        const warning = document.createElement('div');
+        warning.className = 'warning';
+        warning.textContent = message;
+    
+        // Remove the warning after it fades out
+        setTimeout(() => {
+            if (container.contains(warning)) {
+                container.removeChild(warning);
+            }
+        }, 5000); // Display for 5 seconds
+    
+        // Add the warning to the container
+        container.appendChild(warning);
+    }
+    
+
+        
 
     function init() {
+        
 
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0xffffff);
@@ -70,7 +254,15 @@ document.addEventListener("DOMContentLoaded", () => {
         camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 5000);
         camera.position.set(800, 100, 1000);
         camera.lookAt(0, 0, 0);
-
+        createMechanic();
+        
+        // Add CSS for the warning panel
+        const warningContainer = document.createElement('div');
+        warningContainer.id = 'warning-container';
+        document.body.appendChild(warningContainer);
+        // Add styling for the warnings
+        
+        document.head.appendChild(warningStyle);
         // Ambient lighting
         /* const ambientLight = new THREE.AmbientLight(0x404040, 3); // Increased intensity
         scene.add(ambientLight);
@@ -208,6 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
         sunLight.shadow.bias = -0.0001;
         sunLight.shadow.normalBias = 0.05;
         scene.add(sunLight);
+        
 
         // 3. Corner Lights - Repositioned for better front coverage
         const cornerLights = [
@@ -374,6 +567,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setupUIControls();
         window.addEventListener('resize', onWindowResize);
     }
+    
 
     function createEpoxyFloor() {
         const floorGeometry = new THREE.PlaneGeometry(1000, 1000, 100, 100);
@@ -1029,10 +1223,10 @@ document.addEventListener("DOMContentLoaded", () => {
     
     
     function isCarCentered() {
-        // Assuming the lift is centered at (0, 0, 0) and checking tolerance
         const tolerance = 20; // Adjust as needed
         return Math.abs(carGroup.position.x) < tolerance && Math.abs(carGroup.position.z) < tolerance;
     }
+    
     function centerCar() {
         const startX = carGroup.position.x;
         const startZ = carGroup.position.z;
@@ -1066,7 +1260,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function raiseCar() {
         if (!isCarCentered()) {
-            displayWarning();
+            displayWarning("Please center the car on the lift before raising it!");
             return; // Exit the function if the car is not centered
         }
     
@@ -1083,25 +1277,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 liftRampGroup.position.y = startPosition + (targetPosition - startPosition) * progress;
                 carGroup.position.y = startPosition + (targetPosition - startPosition) * progress;
     
-                if (progress > 0 && progress < 1) {
-                    if (!liftAudio.isPlaying) { // Use a flag to track playback state
-                        liftAudio.currentTime = 0; // Ensure audio starts from the beginning
-                        liftAudio.play();
-                        liftAudio.isPlaying = true; // Set the flag to true
-                    }
-                } else {
+                // Play lift audio while the animation is in progress
+                if (progress > 0 && progress < 1 && !liftAudio.isPlaying) {
+                    liftAudio.currentTime = 0; // Start audio from the beginning
+                    liftAudio.play();
+                    liftAudio.isPlaying = true; // Set custom flag
+                }
+    
+                // Stop audio when animation completes
+                if (progress >= 1) {
                     liftAudio.pause();
                     liftAudio.currentTime = 0;
-                    liftAudio.isPlaying = false; // Reset the flag
+                    liftAudio.isPlaying = false; // Reset flag
                 }
     
                 if (progress < 1) {
                     requestAnimationFrame(raiseCarAnimation);
                 } else {
                     isCarRaised = true;
-                    liftAudio.pause();
-                    liftAudio.currentTime = 0;
-                    liftAudio.isPlaying = false; // Reset the flag
                 }
             }
     
@@ -1110,6 +1303,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
     function lowerCar() {
+        if (!isCarCentered()) {
+            displayWarning("Please center the car on the lift before lowering it!");
+            return; // Exit the function if the car is not centered
+        }
+    
         if (isCarRaised) {
             let startPosition = liftRampGroup.position.y;
             let targetPosition = -10;
@@ -1123,31 +1321,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 liftRampGroup.position.y = startPosition - (startPosition - targetPosition) * progress;
                 carGroup.position.y = startPosition - (startPosition - targetPosition) * progress;
     
-                if (progress > 0 && progress < 1) {
-                    if (!liftAudio.isPlaying) {
-                        liftAudio.currentTime = 0; // Ensure audio starts from the beginning
-                        liftAudio.play();
-                        liftAudio.isPlaying = true; // Set the flag to true
-                    }
-                } else {
+                // Play lift audio while the animation is in progress
+                if (progress > 0 && progress < 1 && !liftAudio.isPlaying) {
+                    liftAudio.currentTime = 0; // Start audio from the beginning
+                    liftAudio.play();
+                    liftAudio.isPlaying = true; // Set custom flag
+                }
+    
+                // Stop audio when animation completes
+                if (progress >= 1) {
                     liftAudio.pause();
                     liftAudio.currentTime = 0;
-                    liftAudio.isPlaying = false; // Reset the flag
+                    liftAudio.isPlaying = false; // Reset flag
                 }
     
                 if (progress < 1) {
                     requestAnimationFrame(lowerCarAnimation);
                 } else {
                     isCarRaised = false;
-                    liftAudio.pause();
-                    liftAudio.currentTime = 0;
-                    liftAudio.isPlaying = false; // Reset the flag
                 }
             }
     
             requestAnimationFrame(lowerCarAnimation);
         }
     }
+    
+    
     
     
     
@@ -1167,7 +1366,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 liftRampGroup.rotation.y += rotationSpeed; // Rotate the lift group
             } else {
                 isRotating = false; // Stop rotation if not centered
-                alert("Please center the car before rotating!"); // Display warning
+                displayWarning("Please center the car before rotating!"); // Display warning
                 const rotationButton = document.getElementById('rotation-button');
                 if (rotationButton) {
                     rotationButton.textContent = 'Rotate'; // Reset button text
@@ -1215,8 +1414,8 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Add event listener for keyboard zoom control
     document.addEventListener("keydown", handleKeyDown);
-    function displayWarning() {
-        alert("Center the car on the lift!");
+    function displayWaning() {
+        displayWarning("Center the car on the lift!");
     }
     
     
@@ -1273,29 +1472,67 @@ document.addEventListener("DOMContentLoaded", () => {
         const startCarButton = document.createElement('button');
         startCarButton.id = 'start-car-button';
         startCarButton.textContent = 'Start/Stop';
-        startCarButton.classList.add('button');
+        startCarButton.classList.add('button', 'button-red'); // Initially red since the car is off
         container.appendChild(startCarButton);
-        startCarButton.addEventListener('click', () => {
+
+        startCarButton.addEventListener('click', async () => {
             if (!isSwitchOn) {
-                alert("Switch is off! Centering, lifting, and calling the mechanic...");
-                centerCar(); // Automatically center the car
+                failStartAudio.currentTime = 0;
+                failStartAudio.play();
                 setTimeout(() => {
-                    raiseCar(); // Raise the car after centering
-                    mechanicWorkSequence(); // Call the mechanic to work under the car
-                }, 2000); // Add delay to ensure centering completes first
+                    failStartAudio.pause();
+                    failStartAudio.currentTime = 0;
+                }, 2000);
+        
+                displayWarning("Switch is off! Calling the mechanic...");
+        
+                setTimeout(async () => {
+                    displayWarning("Raising the car...");
+                    await new Promise((resolve) => {
+                        raiseCar();
+                        setTimeout(resolve, 4000);
+                    });
+        
+                    displayWarning("Mechanic is moving under the car...");
+                    await mechanicMoveToCar(4000);
+        
+                    setTimeout(async () => {
+                        displayWarning("Mechanic is working...");
+                        setTimeout(async () => {
+                            isSwitchOn = true;
+                            toggleSwitch.checked = true;
+                            displayWarning("Mechanic has turned the switch on!");
+                            await mechanicReturnToPosition(4000);
+                            lowerCar();
+                        }, 5000);
+                    }, 2000);
+                }, 3000);
             } else if (!isCarStarted) {
                 carStartAudio.play();
                 isCarStarted = true;
                 startCarButton.textContent = "Stop Car";
-                alert("Car started. You can now move the car.");
+        
+                // Apply green class and remove red
+                startCarButton.classList.remove('button-red');
+                startCarButton.classList.add('button-green');
+                displayWarning("Car started. You can now move the car.");
             } else {
                 isCarStarted = false;
                 startCarButton.textContent = "Start Car";
+        
+                // Apply red class and remove green
+                startCarButton.classList.remove('button-green');
+                startCarButton.classList.add('button-red');
                 carStartAudio.pause();
                 carStartAudio.currentTime = 0;
-                alert("Car turned off.");
+                displayWarning("Car turned off.");
             }
         });
+        
+        
+        
+        
+        
         
         
         
@@ -1424,7 +1661,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     
     function displayWarnig() {
-        alert("Start the car before moving!");
+        displayWarning("Start the car before moving!");
     }
     
     
