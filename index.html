@@ -134,17 +134,10 @@
             min-height: calc(100vh - var(--header-height));
         }
 
-        
-
         .page-title {
             font-size: 1.5rem;
             color: var(--primary-color);
             margin-bottom: 8px;
-        }
-
-        .page-subtitle {
-            color: #666;
-            font-size: 0.9rem;
         }
 
         .maintenance-grid {
@@ -198,24 +191,97 @@
             top: 60px;
             right: 24px;
             background: rgba(255,255,255,0.9);
-            padding: 12px;  /* Reduced padding */
-            border-radius: 6px;  /* Slightly reduced border radius */
+            padding: 12px;
+            border-radius: 6px;
             box-shadow: var(--shadow-sm);
-            font-size: 0.85rem;  /* Reduced font size */
+            font-size: 0.85rem;
         }
 
         .stats-item {
-            margin-bottom: 6px;  /* Reduced margin */
-            font-size: 0.85rem;  /* Reduced font size */
+            margin-bottom: 6px;
+            font-size: 0.85rem;
         }
 
-        .stats-item:last-child {
-            margin-bottom: 0;  /* Remove margin from last item */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
         }
 
-        .stats-label {
-            color: #666;
-            margin-right: 6px;  /* Reduced margin */
+        .modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 1001;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .schedule-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .schedule-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .parts-catalog {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .part-card {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .part-card:hover {
+            transform: scale(1.05);
+        }
+
+        .history-timeline {
+            position: relative;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .timeline-event {
+            position: relative;
+            padding: 10px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         @media (max-width: 700px) {
@@ -236,10 +302,6 @@
                 left: 0;
             }
             
-            .menu-toggle {
-                display: block;
-            }
-
             .maintenance-grid {
                 grid-template-columns: 1fr;
             }
@@ -273,25 +335,21 @@
                 <i class="fas fa-tachometer-alt"></i>
                 Dashboard
             </a>
-            <a href="#" class="menu-item">
+            <a href="#" class="menu-item" data-section="maintenance">
                 <i class="fas fa-wrench"></i>
                 Maintenance
             </a>
-            <a href="#" class="menu-item">
+            <a href="#" class="menu-item" data-section="parts">
                 <i class="fas fa-cogs"></i>
                 Parts
             </a>
-            <a href="#" class="menu-item">
+            <a href="#" class="menu-item" data-section="history">
                 <i class="fas fa-history"></i>
                 History
             </a>
-            <a href="#" class="menu-item">
+            <a href="#" class="menu-item" data-section="schedule">
                 <i class="fas fa-calendar-alt"></i>
                 Schedule
-            </a>
-            <a href="#" class="menu-item">
-                <i class="fas fa-file-alt"></i>
-                Reports
             </a>
         </nav>
     </aside>
@@ -299,7 +357,6 @@
     <main class="main-content">
         <div class="page-header">
             <h1 class="page-title">Vehicle Maintenance Inspector</h1>
-            
         </div>
 
         <div class="maintenance-grid">
@@ -337,33 +394,181 @@
         </div>
     </main>
 
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+
+    <!-- Add this script just before the closing body tag -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const menuItems = document.querySelectorAll('.menu-item');
+            const modalOverlay = document.getElementById('modalOverlay');
+            const modalContent = document.getElementById('modalContent');
             
+            // Maintenance Data
+            const maintenanceData = {
+                scheduledTasks: [
+                    { id: 1, task: "Oil Change", due: "2024-12-01", status: "Pending" },
+                    { id: 2, task: "Brake Inspection", due: "2024-12-15", status: "Scheduled" },
+                    { id: 3, task: "Tire Rotation", due: "2024-12-10", status: "In Progress" }
+                ],
+                parts: [
+                    { id: 1, name: "Oil Filter", condition: "Replace", price: "$15.99" },
+                    { id: 2, name: "Brake Pads", condition: "Check", price: "$45.99" },
+                    { id: 3, name: "Air Filter", condition: "Clean", price: "$12.99" }
+                ],
+                history: [
+                    { date: "2024-11-01", service: "Oil Change", cost: "$45.99" },
+                    { date: "2024-10-15", service: "Tire Rotation", cost: "$30.00" },
+                    { date: "2024-09-30", service: "Brake Service", cost: "$150.00" }
+                ]
+            };
+
+            function showModal(content) {
+                modalContent.innerHTML = content;
+                modalOverlay.style.display = 'block';
+            }
+
+            modalOverlay.addEventListener('click', function(e) {
+                if (e.target === modalOverlay) {
+                    modalOverlay.style.display = 'none';
+                }
+            });
+
             menuItems.forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
                     
-                    // Only handle the dashboard menu item
                     if (this.getAttribute('data-section') === 'dashboard') {
-                        // Remove active class from all menu items
                         menuItems.forEach(mi => mi.classList.remove('active'));
-                        // Add active class to dashboard
                         this.classList.add('active');
+                        return;
                     }
+
+                    // Handle other menu items
+                    const menuText = this.textContent.trim();
+                    let modalHTML = '';
+
+                    switch(menuText) {
+                        case 'Maintenance':
+                            modalHTML = `
+                                <h2 style="margin-bottom: 20px; color: var(--primary-color);">Maintenance Schedule</h2>
+                                <div class="schedule-grid">
+                                    ${maintenanceData.scheduledTasks.map(task => `
+                                        <div class="schedule-card">
+                                            <h3>${task.task}</h3>
+                                            <p>Due: ${task.due}</p>
+                                            <p>Status: ${task.status}</p>
+                                            <button onclick="window.open('ar-view.html', '_blank')" 
+                                                    style="background: var(--accent-color); color: white; border: none; 
+                                                           padding: 5px 10px; border-radius: 4px; margin-top: 10px;">
+                                                View in AR
+                                            </button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `;
+                            break;
+
+                        case 'Parts':
+                            modalHTML = `
+                                <h2 style="margin-bottom: 20px; color: var(--primary-color);">Parts Catalog</h2>
+                                <div class="parts-catalog">
+                                    ${maintenanceData.parts.map(part => `
+                                        <div class="part-card">
+                                            <i class="fas fa-cog" style="font-size: 2em; color: var(--accent-color);"></i>
+                                            <h3>${part.name}</h3>
+                                            <p>Condition: ${part.condition}</p>
+                                            <p>Price: ${part.price}</p>
+                                            <button onclick="showPartDetails('${part.name}')" 
+                                                    style="background: var(--accent-color); color: white; border: none; 
+                                                           padding: 5px 10px; border-radius: 4px; margin-top: 10px;">
+                                                View 3D Model
+                                            </button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `;
+                            break;
+
+                        case 'History':
+                            modalHTML = `
+                                <h2 style="margin-bottom: 20px; color: var(--primary-color);">Service History</h2>
+                                <div class="history-timeline">
+                                    ${maintenanceData.history.map(event => `
+                                        <div class="timeline-event">
+                                            <h3>${event.service}</h3>
+                                            <p>Date: ${event.date}</p>
+                                            <p>Cost: ${event.cost}</p>
+                                            <button onclick="showServiceDetails('${event.service}')" 
+                                                    style="background: var(--accent-color); color: white; border: none; 
+                                                           padding: 5px 10px; border-radius: 4px; margin-top: 10px;">
+                                                View Details
+                                            </button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `;
+                            break;
+
+                        case 'Schedule':
+                            modalHTML = `
+                                <h2 style="margin-bottom: 20px; color: var(--primary-color);">Schedule Service</h2>
+                                <div style="padding: 20px;">
+                                    <form id="scheduleForm" onsubmit="handleScheduleSubmit(event)" style="display: grid; gap: 15px;">
+                                        <div>
+                                            <label style="display: block; margin-bottom: 5px;">Service Type</label>
+                                            <select required style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                                                <option value="">Select Service</option>
+                                                <option value="oil_change">Oil Change</option>
+                                                <option value="tire_rotation">Tire Rotation</option>
+                                                <option value="brake_service">Brake Service</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label style="display: block; margin-bottom: 5px;">Preferred Date</label>
+                                            <input type="date" required style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; margin-bottom: 5px;">Preferred Time</label>
+                                            <input type="time" required style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                                        </div>
+                                        <button type="submit" 
+                                                style="background: var(--accent-color); color: white; border: none; 
+                                                       padding: 10px; border-radius: 4px; cursor: pointer;">
+                                            Schedule Service
+                                        </button>
+                                    </form>
+                                </div>
+                            `;
+                            break;
+                    }
+
+                    showModal(modalHTML);
                 });
             });
+
+            // Global functions for the modal interactions
+            window.showPartDetails = function(partName) {
+                alert(`Launching 3D viewer for ${partName}`);
+            };
+
+            window.showServiceDetails = function(service) {
+                alert(`Showing detailed report for ${service}`);
+            };
+
+            window.handleScheduleSubmit = function(event) {
+                event.preventDefault();
+                alert('Service scheduled successfully!');
+                modalOverlay.style.display = 'none';
+            };
         });
     </script>
 
+    <!-- Keep your existing script imports -->
     <script src="three.js"></script>
     <script src="GLTFLoader.js"></script>
     <script src="OrbitControls.js"></script>
-    
-    <script type="module" src="app.js"></script>
-
-     
-    
+    <script src="app.js"></script>
 </body>
 </html>

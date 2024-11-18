@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let moveLeft = false;
     let moveRight = false;
     let isCarStarted = false; // Tracks whether the car is started
+    let isSwitchOn = false;
 
 
     // Load the audio file
@@ -78,58 +79,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // Overhead lights
         // Overhead lights with hanging mounts
         // Overhead lights with realistic garage lighting colors
-        function createMechanic() {
-            const mechanicGroup = new THREE.Group();
         
-            // Head
-            const headGeometry = new THREE.SphereGeometry(10, 32, 32);
-            const headMaterial = new THREE.MeshStandardMaterial({ color: 0xffcc99 }); // Skin color
-            const head = new THREE.Mesh(headGeometry, headMaterial);
-            head.position.set(0, 70, 0);
-            mechanicGroup.add(head);
         
-            // Torso
-            const torsoGeometry = new THREE.CylinderGeometry(15, 20, 40, 32);
-            const torsoMaterial = new THREE.MeshStandardMaterial({ color: 0x1f75fe }); // Blue jumpsuit
-            const torso = new THREE.Mesh(torsoGeometry, torsoMaterial);
-            torso.position.set(0, 40, 0);
-            mechanicGroup.add(torso);
         
-            // Legs
-            const legGeometry = new THREE.CylinderGeometry(7, 7, 40, 32);
-            const legMaterial = new THREE.MeshStandardMaterial({ color: 0x1f75fe }); // Same blue jumpsuit
         
-            const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
-            leftLeg.position.set(-8, 0, 0);
-            mechanicGroup.add(leftLeg);
-        
-            const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
-            rightLeg.position.set(8, 0, 0);
-            mechanicGroup.add(rightLeg);
-        
-            // Arms
-            const armGeometry = new THREE.CylinderGeometry(5, 5, 30, 32);
-            const armMaterial = new THREE.MeshStandardMaterial({ color: 0x1f75fe });
-        
-            const leftArm = new THREE.Mesh(armGeometry, armMaterial);
-            leftArm.position.set(-25, 55, 0);
-            leftArm.rotation.z = Math.PI / 4; // Angled arm
-            mechanicGroup.add(leftArm);
-        
-            const rightArm = new THREE.Mesh(armGeometry, armMaterial);
-            rightArm.position.set(25, 55, 0);
-            rightArm.rotation.z = -Math.PI / 4; // Angled arm
-            mechanicGroup.add(rightArm);
-        
-            // Position the mechanic next to the car
-            mechanicGroup.position.set(200, 0, 0); // Adjust position as needed
-            mechanicGroup.scale.set(1.5, 1.5, 1.5); // Scale up if needed
-        
-            // Add the mechanic to the scene
-            scene.add(mechanicGroup);
-        }
-        
-        createMechanic();
         
         for (let x = -310; x <= 300; x += 150) {
             // Create hanging wires/rods
@@ -899,25 +852,88 @@ document.addEventListener("DOMContentLoaded", () => {
         jackGroup.add(backRightWheel);
         jackGroup.position.set(-100, 0, 200);
     
-        // 3. Digital Diagnostic Scanner
-        const scanner = new THREE.Group();
-        
-        // Main body
+        // Create a canvas texture for the screen
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const screenTexture = new THREE.CanvasTexture(canvas);
+
+        // Function to update the screen with diagnostic information
+        function updateScreen(text) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'lime';
+            ctx.font = '30px Arial';
+            ctx.fillText(text, 20, 50);
+
+            screenTexture.needsUpdate = true;
+        }
+
+        // Main body of the scanner
         const scannerBody = new THREE.Mesh(
             new THREE.BoxGeometry(15, 25, 3),
             redPlasticMaterial
         );
-        
-        // Screen
+
+        // Screen with dynamic texture
         const screen = new THREE.Mesh(
             new THREE.PlaneGeometry(12, 20),
-            new THREE.MeshBasicMaterial({ color: 0x00ff00, opacity: 0.8, transparent: true })
+            new THREE.MeshBasicMaterial({ map: screenTexture })
         );
         screen.position.z = 1.6;
-        
+
+        // Buttons for interaction
+        const buttonGeometry = new THREE.CylinderGeometry(1, 1, 2, 32);
+        const buttonMaterial = new THREE.MeshStandardMaterial({ color: 0x555555 });
+        const button1 = new THREE.Mesh(buttonGeometry, buttonMaterial);
+        const button2 = button1.clone();
+        button1.position.set(-5, -8, 2);
+        button2.position.set(5, -8, 2);
+
+        // Add event listener for interactions
+        button1.userData = { type: 'engine' };
+        button2.userData = { type: 'tires' };
+
+        // Grouping scanner components
+        const scanner = new THREE.Group();
         scanner.add(scannerBody);
         scanner.add(screen);
+        scanner.add(button1);
+        scanner.add(button2);
         scanner.position.set(350, 105, 390);
+
+        // Add the scanner to the scene
+        scene.add(scanner);
+
+        // Raycaster for detecting button clicks
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        function onMouseClick(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects([button1, button2]);
+
+            if (intersects.length > 0) {
+                const buttonType = intersects[0].object.userData.type;
+                if (buttonType === 'engine') {
+                    updateScreen('Engine: OK\nOil Level: Low');
+                } else if (buttonType === 'tires') {
+                    updateScreen('Tire Pressure: Front Low\nRear: OK');
+                }
+            }
+        }
+
+        window.addEventListener('click', onMouseClick);
+        
+
     
         // 4. Oil Drain Pan
         const panGroup = new THREE.Group();
@@ -982,7 +998,36 @@ document.addEventListener("DOMContentLoaded", () => {
         toolsGroup.add(creeperGroup);
         
         return toolsGroup;
+
     }
+    function connectToolToCar() {
+        const toolPosition = new THREE.Vector3(350, 105, 390); // Diagnostic tool position
+        const carPosition = carGroup.position.clone(); // Car's position
+        carPosition.y += 108; // Adjust height if necessary
+    
+        // Create wire geometry
+        const wireGeometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 32);
+        const wireMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+        const wire = new THREE.Mesh(wireGeometry, wireMaterial);
+    
+        // Calculate the midpoint and length of the wire
+        const midpoint = new THREE.Vector3().addVectors(toolPosition, carPosition).divideScalar(2);
+        const length = toolPosition.distanceTo(carPosition);
+        wire.scale.set(1, length / 2, 1); // Adjust height scale
+    
+        // Align the wire with the positions
+        const direction = new THREE.Vector3().subVectors(carPosition, toolPosition).normalize();
+        const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+        wire.quaternion.copy(quaternion);
+    
+        // Position the wire at the midpoint
+        wire.position.copy(midpoint);
+    
+        // Add the wire to the scene
+        scene.add(wire);
+    }
+    
+    
     function isCarCentered() {
         // Assuming the lift is centered at (0, 0, 0) and checking tolerance
         const tolerance = 20; // Adjust as needed
@@ -993,7 +1038,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const startZ = carGroup.position.z;
         const targetX = 0;
         const targetZ = 0;
-        const duration = 2000; // Duration in milliseconds for centering animation
+        const duration = 2000; // 2 seconds for centering animation
         const startTime = performance.now();
     
         function animateCarToCenter(currentTime) {
@@ -1008,8 +1053,6 @@ document.addEventListener("DOMContentLoaded", () => {
             // Continue animation until progress reaches 1
             if (progress < 1) {
                 requestAnimationFrame(animateCarToCenter);
-            } else {
-                console.log('Car centered');
             }
         }
     
@@ -1117,6 +1160,21 @@ document.addEventListener("DOMContentLoaded", () => {
     function animate() {
         requestAnimationFrame(animate);
     
+        // Rotate the car and lift bed if the rotation toggle is active and the car is centered
+        if (isRotating && carGroup) {
+            if (isCarCentered()) {
+                carGroup.rotation.y += rotationSpeed; // Rotate the car group
+                liftRampGroup.rotation.y += rotationSpeed; // Rotate the lift group
+            } else {
+                isRotating = false; // Stop rotation if not centered
+                alert("Please center the car before rotating!"); // Display warning
+                const rotationButton = document.getElementById('rotation-button');
+                if (rotationButton) {
+                    rotationButton.textContent = 'Rotate'; // Reset button text
+                }
+            }
+        }
+    
         if (isCarStarted && carGroup) {
             if (!isCarRaised) {
                 if (moveForward) carGroup.position.z -= carSpeed;
@@ -1135,6 +1193,8 @@ document.addEventListener("DOMContentLoaded", () => {
         controls.update();
         renderer.render(scene, camera);
     }
+    
+    
     
     
     
@@ -1169,6 +1229,25 @@ document.addEventListener("DOMContentLoaded", () => {
         container.classList.add('button-container');
         document.body.appendChild(container);
 
+        const toggleSwitch = document.createElement('input');
+        toggleSwitch.type = 'checkbox';
+        toggleSwitch.id = 'toggle-switch';
+        toggleSwitch.style.width = '40px';
+        toggleSwitch.style.height = '20px';
+        toggleSwitch.style.cursor = 'pointer';
+
+        const switchLabel = document.createElement('label');
+        switchLabel.textContent = 'Enable Car Start';
+        switchLabel.htmlFor = 'toggle-switch';
+        switchLabel.style.marginLeft = '10px';
+
+        container.appendChild(toggleSwitch);
+        container.appendChild(switchLabel);
+        toggleSwitch.addEventListener('change', () => {
+            isSwitchOn = toggleSwitch.checked; // True if the switch is toggled on
+        });
+
+
         // Toggle Rotation Button
         const rotationButton = document.createElement('button');
         rotationButton.id = 'rotation-button';
@@ -1197,21 +1276,28 @@ document.addEventListener("DOMContentLoaded", () => {
         startCarButton.classList.add('button');
         container.appendChild(startCarButton);
         startCarButton.addEventListener('click', () => {
-            if (isCarStarted) {
-                // Turn off the car
-                isCarStarted = false;
-                startCarButton.textContent = "Start Car"; // Update button text
-                carStartAudio.pause(); // Stop any ongoing audio if applicable
-                carStartAudio.currentTime = 0; // Reset audio to the beginning
-                alert("Car turned off.");
-            } else {
-                // Start the car
+            if (!isSwitchOn) {
+                alert("Switch is off! Centering, lifting, and calling the mechanic...");
+                centerCar(); // Automatically center the car
+                setTimeout(() => {
+                    raiseCar(); // Raise the car after centering
+                    mechanicWorkSequence(); // Call the mechanic to work under the car
+                }, 2000); // Add delay to ensure centering completes first
+            } else if (!isCarStarted) {
+                carStartAudio.play();
                 isCarStarted = true;
-                startCarButton.textContent = "Stop Car"; // Update button text
-                carStartAudio.play(); // Play the car start sound
+                startCarButton.textContent = "Stop Car";
                 alert("Car started. You can now move the car.");
+            } else {
+                isCarStarted = false;
+                startCarButton.textContent = "Start Car";
+                carStartAudio.pause();
+                carStartAudio.currentTime = 0;
+                alert("Car turned off.");
             }
         });
+        
+        
         
         
 
@@ -1340,6 +1426,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function displayWarnig() {
         alert("Start the car before moving!");
     }
+    
     
     
     
