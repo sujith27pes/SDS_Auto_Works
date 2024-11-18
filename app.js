@@ -7,9 +7,17 @@ document.addEventListener("DOMContentLoaded", () => {
     let isRotating = false;
     let isCarRaised = false;
     const raiseCarDuration = 4000; // 2 seconds
+    let carSpeed = 2; // Adjust speed as needed
+    let moveForward = false;
+    let moveBackward = false;
+    let moveLeft = false;
+    let moveRight = false;
+    let isCarStarted = false; // Tracks whether the car is started
+
 
     // Load the audio file
     const liftAudio = new Audio('hydroliclift sound.m4a');
+    const carStartAudio = new Audio('car-engine-start-outside-72279.mp3');
 
     // Add CSS styling for the buttons directly in JavaScript
     const style = document.createElement('style');
@@ -40,6 +48,14 @@ document.addEventListener("DOMContentLoaded", () => {
         #raise-car-button { background-color: #FF5722; }
         #zoom-in-button { background-color: #2196F3; }
         #zoom-out-button { background-color: #FFC107; }
+        #center-car-button {
+            background-color: #1E90FF; /* Dodger Blue */
+            color: white;
+        }
+        #start-car-button {
+            background-color: #32CD32; /* Lime Green */
+            color: white;
+}
     `;
     document.head.appendChild(style);
 
@@ -62,6 +78,59 @@ document.addEventListener("DOMContentLoaded", () => {
         // Overhead lights
         // Overhead lights with hanging mounts
         // Overhead lights with realistic garage lighting colors
+        function createMechanic() {
+            const mechanicGroup = new THREE.Group();
+        
+            // Head
+            const headGeometry = new THREE.SphereGeometry(10, 32, 32);
+            const headMaterial = new THREE.MeshStandardMaterial({ color: 0xffcc99 }); // Skin color
+            const head = new THREE.Mesh(headGeometry, headMaterial);
+            head.position.set(0, 70, 0);
+            mechanicGroup.add(head);
+        
+            // Torso
+            const torsoGeometry = new THREE.CylinderGeometry(15, 20, 40, 32);
+            const torsoMaterial = new THREE.MeshStandardMaterial({ color: 0x1f75fe }); // Blue jumpsuit
+            const torso = new THREE.Mesh(torsoGeometry, torsoMaterial);
+            torso.position.set(0, 40, 0);
+            mechanicGroup.add(torso);
+        
+            // Legs
+            const legGeometry = new THREE.CylinderGeometry(7, 7, 40, 32);
+            const legMaterial = new THREE.MeshStandardMaterial({ color: 0x1f75fe }); // Same blue jumpsuit
+        
+            const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+            leftLeg.position.set(-8, 0, 0);
+            mechanicGroup.add(leftLeg);
+        
+            const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+            rightLeg.position.set(8, 0, 0);
+            mechanicGroup.add(rightLeg);
+        
+            // Arms
+            const armGeometry = new THREE.CylinderGeometry(5, 5, 30, 32);
+            const armMaterial = new THREE.MeshStandardMaterial({ color: 0x1f75fe });
+        
+            const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+            leftArm.position.set(-25, 55, 0);
+            leftArm.rotation.z = Math.PI / 4; // Angled arm
+            mechanicGroup.add(leftArm);
+        
+            const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+            rightArm.position.set(25, 55, 0);
+            rightArm.rotation.z = -Math.PI / 4; // Angled arm
+            mechanicGroup.add(rightArm);
+        
+            // Position the mechanic next to the car
+            mechanicGroup.position.set(200, 0, 0); // Adjust position as needed
+            mechanicGroup.scale.set(1.5, 1.5, 1.5); // Scale up if needed
+        
+            // Add the mechanic to the scene
+            scene.add(mechanicGroup);
+        }
+        
+        createMechanic();
+        
         for (let x = -310; x <= 300; x += 150) {
             // Create hanging wires/rods
             const wireGeometry = new THREE.CylinderGeometry(0.5, 0.5, 50, 8);
@@ -746,6 +815,7 @@ document.addEventListener("DOMContentLoaded", () => {
         liftRampGroup.add(legsGroup);
         liftRampGroup.position.y = -10;
     }
+    
     function createTools() {
         const toolsGroup = new THREE.Group();
         
@@ -913,88 +983,131 @@ document.addEventListener("DOMContentLoaded", () => {
         
         return toolsGroup;
     }
+    function isCarCentered() {
+        // Assuming the lift is centered at (0, 0, 0) and checking tolerance
+        const tolerance = 20; // Adjust as needed
+        return Math.abs(carGroup.position.x) < tolerance && Math.abs(carGroup.position.z) < tolerance;
+    }
+    function centerCar() {
+        const startX = carGroup.position.x;
+        const startZ = carGroup.position.z;
+        const targetX = 0;
+        const targetZ = 0;
+        const duration = 2000; // Duration in milliseconds for centering animation
+        const startTime = performance.now();
+    
+        function animateCarToCenter(currentTime) {
+            let elapsedTime = currentTime - startTime;
+            let progress = elapsedTime / duration;
+            progress = Math.min(progress, 1); // Ensure progress does not exceed 1
+    
+            // Interpolate position
+            carGroup.position.x = startX + (targetX - startX) * progress;
+            carGroup.position.z = startZ + (targetZ - startZ) * progress;
+    
+            // Continue animation until progress reaches 1
+            if (progress < 1) {
+                requestAnimationFrame(animateCarToCenter);
+            } else {
+                console.log('Car centered');
+            }
+        }
+    
+        requestAnimationFrame(animateCarToCenter);
+    }
+    
+    
     
     // Add this line in your init() function, after creating the workbench:
     
 
     function raiseCar() {
+        if (!isCarCentered()) {
+            displayWarning();
+            return; // Exit the function if the car is not centered
+        }
+    
         if (!isCarRaised) {
             let startPosition = liftRampGroup.position.y;
             let targetPosition = 80;
             let startTime = performance.now();
-
+    
             function raiseCarAnimation(currentTime) {
                 let elapsedTime = currentTime - startTime;
                 let progress = elapsedTime / raiseCarDuration;
                 progress = Math.min(progress, 1);
-
+    
                 liftRampGroup.position.y = startPosition + (targetPosition - startPosition) * progress;
                 carGroup.position.y = startPosition + (targetPosition - startPosition) * progress;
-
+    
                 if (progress > 0 && progress < 1) {
-                    if (!liftAudio.playing) {
+                    if (!liftAudio.isPlaying) { // Use a flag to track playback state
+                        liftAudio.currentTime = 0; // Ensure audio starts from the beginning
                         liftAudio.play();
-                        liftAudio.playing = true;
+                        liftAudio.isPlaying = true; // Set the flag to true
                     }
                 } else {
                     liftAudio.pause();
                     liftAudio.currentTime = 0;
-                    liftAudio.playing = false;
+                    liftAudio.isPlaying = false; // Reset the flag
                 }
-
+    
                 if (progress < 1) {
                     requestAnimationFrame(raiseCarAnimation);
                 } else {
                     isCarRaised = true;
                     liftAudio.pause();
                     liftAudio.currentTime = 0;
-                    liftAudio.playing = false;
+                    liftAudio.isPlaying = false; // Reset the flag
                 }
             }
-
+    
             requestAnimationFrame(raiseCarAnimation);
         }
     }
-
+    
     function lowerCar() {
         if (isCarRaised) {
             let startPosition = liftRampGroup.position.y;
             let targetPosition = -10;
             let startTime = performance.now();
-
+    
             function lowerCarAnimation(currentTime) {
                 let elapsedTime = currentTime - startTime;
                 let progress = elapsedTime / raiseCarDuration;
                 progress = Math.min(progress, 1);
-
+    
                 liftRampGroup.position.y = startPosition - (startPosition - targetPosition) * progress;
                 carGroup.position.y = startPosition - (startPosition - targetPosition) * progress;
-
+    
                 if (progress > 0 && progress < 1) {
-                    if (!liftAudio.playing) {
+                    if (!liftAudio.isPlaying) {
+                        liftAudio.currentTime = 0; // Ensure audio starts from the beginning
                         liftAudio.play();
-                        liftAudio.playing = true;
+                        liftAudio.isPlaying = true; // Set the flag to true
                     }
                 } else {
                     liftAudio.pause();
                     liftAudio.currentTime = 0;
-                    liftAudio.playing = false;
+                    liftAudio.isPlaying = false; // Reset the flag
                 }
-
+    
                 if (progress < 1) {
                     requestAnimationFrame(lowerCarAnimation);
                 } else {
                     isCarRaised = false;
                     liftAudio.pause();
                     liftAudio.currentTime = 0;
-                    liftAudio.playing = false;
+                    liftAudio.isPlaying = false; // Reset the flag
                 }
             }
-
+    
             requestAnimationFrame(lowerCarAnimation);
         }
     }
-
+    
+    
+    
     function onWindowResize() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
@@ -1004,18 +1117,27 @@ document.addEventListener("DOMContentLoaded", () => {
     function animate() {
         requestAnimationFrame(animate);
     
-        if (isRotating) {
-            if (carGroup) {
-                carGroup.rotation.y += rotationSpeed;
+        if (isCarStarted && carGroup) {
+            if (!isCarRaised) {
+                if (moveForward) carGroup.position.z -= carSpeed;
+                if (moveBackward) carGroup.position.z += carSpeed;
+                if (moveLeft) carGroup.position.x -= carSpeed;
+                if (moveRight) carGroup.position.x += carSpeed;
             }
-            if (liftRamp) {
-                liftRampGroup.rotation.y += rotationSpeed;
-            }
+        } else {
+            // Reset all movement flags if the car is off
+            moveForward = false;
+            moveBackward = false;
+            moveLeft = false;
+            moveRight = false;
         }
     
         controls.update();
         renderer.render(scene, camera);
     }
+    
+    
+    
     function handleKeyDown(event) {
         const zoomSpeed = 20; // Adjust zoom speed as needed
         const minZoom = 200;  // Minimum distance (zoom in limit)
@@ -1033,6 +1155,11 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Add event listener for keyboard zoom control
     document.addEventListener("keydown", handleKeyDown);
+    function displayWarning() {
+        alert("Center the car on the lift!");
+    }
+    
+    
     
 
     // Add keyboard event listener for raise/lower controls
@@ -1053,11 +1180,45 @@ document.addEventListener("DOMContentLoaded", () => {
             isRotating = !isRotating;
             rotationButton.textContent = isRotating ? 'Stop' : 'Rotate';
         });
+        const centerCarButton = document.createElement('button');
+        centerCarButton.id = 'center-car-button';
+        centerCarButton.textContent = 'Center Car';
+        centerCarButton.classList.add('button');
+        container.appendChild(centerCarButton);
+
+        // Event listener to center the car
+        centerCarButton.addEventListener('click', () => {
+            centerCar(); // Call the new animation function
+        });
+        
+        const startCarButton = document.createElement('button');
+        startCarButton.id = 'start-car-button';
+        startCarButton.textContent = 'Start/Stop';
+        startCarButton.classList.add('button');
+        container.appendChild(startCarButton);
+        startCarButton.addEventListener('click', () => {
+            if (isCarStarted) {
+                // Turn off the car
+                isCarStarted = false;
+                startCarButton.textContent = "Start Car"; // Update button text
+                carStartAudio.pause(); // Stop any ongoing audio if applicable
+                carStartAudio.currentTime = 0; // Reset audio to the beginning
+                alert("Car turned off.");
+            } else {
+                // Start the car
+                isCarStarted = true;
+                startCarButton.textContent = "Stop Car"; // Update button text
+                carStartAudio.play(); // Play the car start sound
+                alert("Car started. You can now move the car.");
+            }
+        });
+        
+        
 
         // Raise Car Button
         const raiseCarButton = document.createElement('button');
         raiseCarButton.id = 'raise-car-button';
-        raiseCarButton.textContent = 'Raise Car';
+        raiseCarButton.textContent = 'Raise/Lower';
         raiseCarButton.classList.add('button');
         container.appendChild(raiseCarButton);
 
@@ -1094,13 +1255,12 @@ document.addEventListener("DOMContentLoaded", () => {
         
         raiseCarButton.addEventListener('click', () => {
             if (!isCarRaised) {
-                raiseCarButton.textContent = 'Lower Car';
-                raiseCar();
+                raiseCar(); // Raise the car if not already raised
             } else {
-                raiseCarButton.textContent = 'Raise Car';
-                lowerCar();
+                lowerCar(); // Lower the car if it's already raised
             }
         });
+        
     }
 
     // Add keyboard event listener for raise/lower controls
@@ -1115,6 +1275,74 @@ document.addEventListener("DOMContentLoaded", () => {
             lowerCar();
         }
     });
+    document.addEventListener('keydown', (event) => {
+        // Prevent movement if the car is raised
+        if (isCarRaised) {
+            return; // Exit early if the car is raised
+        }
+    
+        switch (event.key.toLowerCase()) {
+            case 'w':
+                moveForward = true;
+                break;
+            case 's':
+                moveBackward = true;
+                break;
+            case 'a':
+                moveLeft = true;
+                break;
+            case 'd':
+                moveRight = true;
+                break;
+        }
+    });
+    
+    document.addEventListener('keyup', (event) => {
+        switch (event.key.toLowerCase()) {
+            case 'w':
+                moveForward = false;
+                break;
+            case 's':
+                moveBackward = false;
+                break;
+            case 'a':
+                moveLeft = false;
+                break;
+            case 'd':
+                moveRight = false;
+                break;
+        }
+    });
+    function handleKeyDown(event) {
+        if (!isCarStarted) {
+            displayWarnig();
+            return; // Prevent movement flags from being set
+        }
+    
+        switch (event.key.toLowerCase()) {
+            case 'w': moveForward = true; break;
+            case 's': moveBackward = true; break;
+            case 'a': moveLeft = true; break;
+            case 'd': moveRight = true; break;
+        }
+    }
+    function handleKeyUp(event) {
+        switch (event.key.toLowerCase()) {
+            case 'w': moveForward = false; break;
+            case 's': moveBackward = false; break;
+            case 'a': moveLeft = false; break;
+            case 'd': moveRight = false; break;
+        }
+    }
+    
+    
+    
+    function displayWarnig() {
+        alert("Start the car before moving!");
+    }
+    
+    
+    
     
     init();
 });
