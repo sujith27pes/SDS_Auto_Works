@@ -26,6 +26,11 @@ You can view the live demo here: [Car Garage Project on Vercel](https://sds-auto
 - The car can't be moved when it is raised
 - When the car has issues, the mechanic moves under the car, fixes it and lowers the car
 
+## Furure Improvemnets
+
+- Initialize a 3d model for the parts
+  
+
 ## Installation
 
 1. Clone the repository:
