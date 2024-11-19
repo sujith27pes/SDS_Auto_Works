@@ -34,9 +34,7 @@ You can view the live demo here: [Car Garage Project on Vercel](https://sds-auto
    git clone https://github.com/sujith27pes/SDS_Auto_Works.git
    cd SDS_Auto_Works
 
- ## Screenshot
 
-![Car Garage Screenshot](./Screenshot%20from%202024-10-15%2009-44-03.png)
 
 
   ## Project Structure
