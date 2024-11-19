@@ -1423,6 +1423,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Add keyboard event listener for raise/lower controls
     function setupUIControls() {
+
+        
+        
+        
+        
+        
+        
+
+
         // Create a container for all buttons
         const container = document.createElement('div');
         container.classList.add('button-container');
@@ -1436,7 +1445,7 @@ document.addEventListener("DOMContentLoaded", () => {
         toggleSwitch.style.cursor = 'pointer';
 
         const switchLabel = document.createElement('label');
-        switchLabel.textContent = 'Enable Car Start';
+        switchLabel.textContent ='All OK with Car';
         switchLabel.htmlFor = 'toggle-switch';
         switchLabel.style.marginLeft = '10px';
 
@@ -1468,12 +1477,18 @@ document.addEventListener("DOMContentLoaded", () => {
         centerCarButton.addEventListener('click', () => {
             centerCar(); // Call the new animation function
         });
+            
+        
         
         const startCarButton = document.createElement('button');
         startCarButton.id = 'start-car-button';
         startCarButton.textContent = 'Start/Stop';
         startCarButton.classList.add('button', 'button-red'); // Initially red since the car is off
         container.appendChild(startCarButton);
+
+        // Inside setupUIControls function
+
+        // Inside setupUIControls function
 
         startCarButton.addEventListener('click', async () => {
             if (!isSwitchOn) {
@@ -1483,43 +1498,51 @@ document.addEventListener("DOMContentLoaded", () => {
                     failStartAudio.pause();
                     failStartAudio.currentTime = 0;
                 }, 2000);
-        
-                displayWarning("Switch is off! Calling the mechanic...");
-        
+
+                displayWarning("Issue with car! Calling the mechanic...");
+
                 setTimeout(async () => {
                     displayWarning("Raising the car...");
                     await new Promise((resolve) => {
                         raiseCar();
                         setTimeout(resolve, 4000);
                     });
-        
-                    displayWarning("Mechanic is moving under the car...");
+
+                    displayWarning("Mechanic is arriving...");
                     await mechanicMoveToCar(4000);
-        
+
                     setTimeout(async () => {
                         displayWarning("Mechanic is working...");
                         setTimeout(async () => {
                             isSwitchOn = true;
                             toggleSwitch.checked = true;
-                            displayWarning("Mechanic has turned the switch on!");
+                            displayWarning("Mechanic has rectified the issue!");
                             await mechanicReturnToPosition(4000);
                             lowerCar();
                         }, 5000);
                     }, 2000);
                 }, 3000);
             } else if (!isCarStarted) {
-                carStartAudio.play();
-                isCarStarted = true;
-                startCarButton.textContent = "Stop Car";
-        
-                // Apply green class and remove red
-                startCarButton.classList.remove('button-red');
-                startCarButton.classList.add('button-green');
-                displayWarning("Car started. You can now move the car.");
+                const correctPIN = "081003"; // Predefined PIN
+                const userPIN = prompt("Enter the 6-digit PIN to start the car:");
+                
+                if (userPIN === correctPIN) {
+                    carStartAudio.play();
+                    isCarStarted = true;
+                    startCarButton.textContent = "Start/Stop";
+
+                    // Apply green class and remove red
+                    startCarButton.classList.remove('button-red');
+                    startCarButton.classList.add('button-green');
+                    displayWarning("Car started. You can now move the car.");
+                } else {
+                    
+                    displayWarning("Incorrect PIN! Car cannot be started.");
+                }
             } else {
                 isCarStarted = false;
-                startCarButton.textContent = "Start Car";
-        
+                startCarButton.textContent = "Start/Stop";
+
                 // Apply red class and remove green
                 startCarButton.classList.remove('button-green');
                 startCarButton.classList.add('button-red');
@@ -1528,6 +1551,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 displayWarning("Car turned off.");
             }
         });
+
+        
+        
+
         
         
         
@@ -1605,10 +1632,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     
         switch (event.key.toLowerCase()) {
-            case 'w':
+            case 's':
                 moveForward = true;
                 break;
-            case 's':
+            case 'w':
                 moveBackward = true;
                 break;
             case 'a':
@@ -1622,10 +1649,10 @@ document.addEventListener("DOMContentLoaded", () => {
     
     document.addEventListener('keyup', (event) => {
         switch (event.key.toLowerCase()) {
-            case 'w':
+            case 's':
                 moveForward = false;
                 break;
-            case 's':
+            case 'w':
                 moveBackward = false;
                 break;
             case 'a':
@@ -1643,16 +1670,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     
         switch (event.key.toLowerCase()) {
-            case 'w': moveForward = true; break;
-            case 's': moveBackward = true; break;
+            case 's': moveForward = true; break;
+            case 'w': moveBackward = true; break;
             case 'a': moveLeft = true; break;
             case 'd': moveRight = true; break;
         }
     }
     function handleKeyUp(event) {
         switch (event.key.toLowerCase()) {
-            case 'w': moveForward = false; break;
-            case 's': moveBackward = false; break;
+            case 's': moveForward = false; break;
+            case 'w': moveBackward = false; break;
             case 'a': moveLeft = false; break;
             case 'd': moveRight = false; break;
         }
