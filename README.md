@@ -18,6 +18,13 @@ You can view the live demo here: [Car Garage Project on Vercel](https://sds-auto
 - A package manager such as npm or yarn
 - Basic knowledge of JavaScript and Three.js
 
+## Constraints
+
+-The car can be lifted only when it is centered
+-The car can be moved using WASD keys only after it is started
+-The car can be started only when the password '081003' is entered
+-The car can't be moved when it is raised
+
 ## Installation
 
 1. Clone the repository:
