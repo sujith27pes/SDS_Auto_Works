@@ -22,7 +22,7 @@ You can view the live demo here: [Car Garage Project on Vercel](https://sds-auto
 
 - The car can be lifted only when it is centered
 - The car can be moved using WASD keys only after it is started
-- The car can be started only when the password '081003' is entered
+- The car can be started only when the password '0000' is entered
 - The car can't be moved when it is raised
 - When the car has issues, the mechanic moves under the car, fixes it and lowers the car
 
