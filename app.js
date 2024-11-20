@@ -1523,8 +1523,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     }, 2000);
                 }, 3000);
             } else if (!isCarStarted) {
-                const correctPIN = "081003"; // Predefined PIN
-                const userPIN = prompt("Enter the 6-digit PIN to start the car:");
+                const correctPIN = "0000"; // Predefined PIN
+                const userPIN = prompt("Enter the 4-digit PIN to start the car:");
                 
                 if (userPIN === correctPIN) {
                     carStartAudio.play();
