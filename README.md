@@ -17,6 +17,26 @@ You can view the live demo here: [Car Garage Project on Vercel](https://sds-auto
 - [Node.js](https://nodejs.org/) installed on your machine
 - A package manager such as npm or yarn
 - Basic knowledge of JavaScript and Three.js
+  
+## Working 
+
+ - When the switch is OFF and the car is tried to turn on, a warning is raised telling that there is an issue with car, and the mechanic is called.In the meantime, the car is raised on the ramp.Once the mechanic has arrived , he startes 
+  working on the issue by standing under the car, for a timing of 5 seconds.After rectification of the issue, the mechanic goes back and the car is lowered automatically.
+ - Then we give a notification tellinng that the issue with the car is rectified and the switch is automatically turned ON.
+ - Now, the car can be started with the press of the button and correct PIN is entered.
+ - Have included the working audio for car starting, car not starting and lift operation.
+ - The car can also be lifted when the key 'R' is clicked and can be lowered when the key 'L' is clickeds
+
+## Lighting
+
+ - Ambient Lights
+ - Directional Sunlight
+ - Corner lights
+ - Front area and fill lights
+ - Ground fill light
+ - Spot light
+ 
+
 
 ## Constraints
 
@@ -29,6 +49,7 @@ You can view the live demo here: [Car Garage Project on Vercel](https://sds-auto
 ## Furure Improvemnets
 
 - Initialize a 3d model for the parts
+- Using mediapipe for motion detection to raise and lower the car
   
 
 ## Installation
