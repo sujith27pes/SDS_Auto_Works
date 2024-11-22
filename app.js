@@ -1,9 +1,52 @@
 
+/**
+ * Car Simulation with 3D Scene
+ * 
+ * This JavaScript code creates a 3D scene using Three.js, where a car model can interact with a lift ramp.
+ * Users can rotate the car, raise/lower the car, and control its movement within the scene.
+ * 
+ * Features:
+ * - 3D Scene setup (Scene, Camera, Renderer, Controls)
+ * - Car model with rotation and movement functionalities
+ * - Lift ramp interactions
+ */
+/**
+     * Scene Variables
+     * - scene: Three.js scene object
+     * - camera: Perspective camera for viewing the scene
+     * - renderer: Renderer to display the scene in the browser
+     * - controls: OrbitControls for interactive camera movement
+     */
+
 document.addEventListener("DOMContentLoaded", () => {
     
+    
 
+    /**
+     * Object Variables
+     * - carGroup: Group representing the car model
+     * - liftRamp: The ramp to raise or lower the car
+     * - liftRampGroup: Group containing lift-related elements
+     */
+
+    /**
+     * Rotation and Movement Variables
+     * - rotationSpeed: Speed of car rotation
+     * - isRotating: Boolean to track rotation state
+     * - isCarRaised: Boolean to track whether the car is raised
+     * - raiseCarDuration: Duration for raising the car (in ms)
+     * - carSpeed: Speed of car movement
+     * - Movement flags: Boolean values for direction (forward, backward, left, right)
+     */
+    
+    /**
+     * Car State Variables
+     * - isCarStarted: Tracks whether the car's engine is started
+     */
      
-    let scene, camera, renderer, controls;
+
+    // Further documentation will be added inline for individual methods and event handlers.
+let scene, camera, renderer, controls;
     let carGroup, liftRamp, liftRampGroup;
     let rotationSpeed = 0.0069;
     let isRotating = false;
