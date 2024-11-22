@@ -841,7 +841,7 @@ let scene, camera, renderer, controls;
     
         // Add floor markings
         const markingsGeometry = new THREE.PlaneGeometry(800, 800);
-        const markingsTexture = new THREE.TextureLoader().load('textures/floor-markings.png');
+        const markingsTexture = new THREE.TextureLoader().load('');
         const markingsMaterial = new THREE.MeshBasicMaterial({
             map: markingsTexture,
             transparent: true,
